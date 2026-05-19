@@ -441,9 +441,9 @@
     </div>
 
     <div class="hero">
-      <p class="hero-eye">Focus Redirect · Phase 1</p>
+      <p class="hero-eye">Focus Redirect · </p>
       <h1 class="hero-h">What are you protecting<br>your time for?</h1>
-      <p class="hero-sub">Write this when clear-headed. Your future self reads it when the urge hits.</p>
+      <p class="hero-sub">Write this when clear headed. Your future self reads it when the urge hits.</p>
     </div>
 
     <div class="content">
@@ -463,12 +463,12 @@
         <div class="field">
           <label class="flabel" for="ctext">In your own words</label>
           <textarea id="ctext" rows="5" maxlength="500"
-            placeholder="e.g. I'm protecting my mornings for snooker drills. Every hour I lose to Instagram is an hour I don't become the player I want to be."></textarea>
+            placeholder="e.g. I'm protecting my mornings for deep work. Every hour I give to Instagram is an hour wasted."></textarea>
           <p class="chint"><span id="ccount">0</span> / 500</p>
         </div>
         <div class="field">
           <label class="flabel" for="cgoal">One specific goal</label>
-          <input type="text" id="cgoal" placeholder="e.g. Nail the stun shot by end of month" maxlength="100">
+          <input type="text" id="cgoal" placeholder="e.g. finish my thesis" maxlength="100">
         </div>
         <button class="btn-p" id="save-btn" onclick="saveContract()" disabled>Lock in my commitment</button>
       </div>
@@ -481,8 +481,8 @@
       <!-- Unlock friction -->
       <div class="uzone" id="uzone">
         <p class="uwarn"><strong style="color:#fff">To change your commitment</strong> you must type exactly why you're giving up. This is not a dismiss button.</p>
-        <p class="uprompt">Type exactly: "I am giving up because"</p>
-        <input type="text" id="uinput" placeholder="I am giving up because" oninput="checkUnlock()">
+        <p class="uprompt">Start with "I am giving up because"  then finish the sentence</p>
+        <input type="text" id="uinput" placeholder="I am giving up because..." oninput="checkUnlock()">
         <p class="uhint" id="uhint"></p>
         <button class="btn-d" id="ubtn" onclick="doUnlock()" disabled>Override my commitment</button>
       </div>
@@ -655,9 +655,8 @@ const APPS = [
   { id:'facebook', name:'Facebook', icon:'👤' },
 ];
 const DEF_REDIRECTS = [
-  { id:'r1', text:'🎱  Snooker drill #4 — stun shot practice' },
-  { id:'r2', text:'🃏  Cardistry: revolution cut, 10 slow reps' },
-  { id:'r3', text:'🎧  Deep house session — 30 min, no phone' },
+  
+  { id:'r3', text:'  Deep work session — 90 min, no phone' },
 ];
 
 function ld(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch{ return d; } }
@@ -679,11 +678,16 @@ function persist(){
 
 /* ── NAVIGATION ── */
 function go(name){
+  // Hide all screens, show the right one
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.bni').forEach(b=>b.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
+  // Each screen has its own nav — update ALL navs so active state is always correct
   const idx = {contract:0, blocklist:1, intercept:2}[name];
-  document.querySelectorAll('.bni')[idx].classList.add('active');
+  document.querySelectorAll('.bnav').forEach(nav=>{
+    nav.querySelectorAll('.bni').forEach((btn,i)=>{
+      btn.classList.toggle('active', i===idx);
+    });
+  });
   if(name==='intercept') renderIntercept();
 }
 
@@ -727,15 +731,25 @@ function toggleUnlock(){
 
 const REQ = 'i am giving up because';
 function checkUnlock(){
-  const v = document.getElementById('uinput').value.trim().toLowerCase();
-  const h = document.getElementById('uhint');
-  const b = document.getElementById('ubtn');
-  if(v === REQ){
-    h.textContent='✓ you may proceed'; h.className='uhint ok'; b.disabled=false;
+  const raw = document.getElementById('uinput').value;
+  const v   = raw.trim().toLowerCase();
+  const h   = document.getElementById('uhint');
+  const b   = document.getElementById('ubtn');
+  const startsCorrect = v.startsWith(REQ);
+  const hasReason     = v.slice(REQ.length).trim().length > 0;
+
+  if(startsCorrect && hasReason){
+    // Typed the prefix AND added a real reason after it
+    h.textContent='✓ reason recorded — you may proceed'; h.className='uhint ok'; b.disabled=false;
+  } else if(startsCorrect && !hasReason){
+    // Typed the prefix exactly but nothing after it yet
+    h.textContent='now finish the sentence — why are you giving up?'; h.className='uhint'; b.disabled=true;
   } else if(REQ.startsWith(v) && v.length>0){
+    // Still typing the prefix, correct so far
     h.textContent='keep typing...'; h.className='uhint'; b.disabled=true;
   } else if(v.length>0){
-    h.textContent='type it exactly as shown'; h.className='uhint'; b.disabled=true;
+    // Wrong start
+    h.textContent='start with: "I am giving up because"'; h.className='uhint'; b.disabled=true;
   } else {
     h.textContent=''; b.disabled=true;
   }
