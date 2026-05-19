@@ -1,733 +1,439 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Focus Redirect — Phase 1</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --amber: #BA7517;
-      --amber-light: #FAEEDA;
-      --amber-dark: #412402;
-      --teal: #1D9E75;
-      --teal-light: #E1F5EE;
-      --teal-dark: #04342C;
-      --coral: #D85A30;
-      --coral-light: #FAECE7;
-      --red: #A32D2D;
-      --red-light: #FCEBEB;
-      --gray-light: #F1EFE8;
-      --gray-mid: #888780;
-      --gray-dark: #2C2C2A;
-      --bg: #ffffff;
-      --bg-secondary: #f5f4f0;
-      --text: #1a1a18;
-      --text-secondary: #5f5e5a;
-      --text-tertiary: #888780;
-      --border: rgba(0,0,0,0.12);
-      --border-secondary: rgba(0,0,0,0.22);
-      --radius-md: 8px;
-      --radius-lg: 12px;
-      --ff-serif: 'DM Serif Display', serif;
-      --ff-sans: 'DM Sans', sans-serif;
-      --ff-mono: 'DM Mono', monospace;
-    }
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#FF204E;
+  --crimson:#A0153E;
+  --plum:#5D0E41;
+  --navy:#00224D;
+  --bg:#080B14;
+  --bg2:#0E1220;
+  --bg3:#141926;
+  --bg4:#1C2235;
+  --surface:#1E2436;
+  --surface2:#252D42;
+  --border:rgba(255,32,78,0.12);
+  --border2:rgba(255,32,78,0.22);
+  --text:#F0EEF8;
+  --text2:#9A98AA;
+  --text3:#5A5870;
+  --ff:'Syne',sans-serif;
+  --fm:'DM Sans',sans-serif;
+  --mono:'DM Mono',monospace;
+  --r:14px;--rl:20px;--rxl:28px
+}
+.app{background:var(--bg);color:var(--text);font-family:var(--fm);min-height:700px;max-width:390px;margin:0 auto;overflow:hidden;border-radius:32px;border:1px solid rgba(255,255,255,0.06)}
+.screen{display:none;animation:fadeUp 0.25s ease}
+.screen.active{display:flex;flex-direction:column;min-height:700px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #1a1a18;
-        --bg-secondary: #242420;
-        --text: #f0ede6;
-        --text-secondary: #b4b2a9;
-        --text-tertiary: #5f5e5a;
-        --border: rgba(255,255,255,0.1);
-        --border-secondary: rgba(255,255,255,0.18);
-        --amber-light: #2a1e08;
-        --teal-light: #061f16;
-        --red-light: #200d0d;
-        --gray-light: #1e1e1c;
-      }
-    }
+/* STATUS BAR */
+.statusbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px 6px;font-size:12px;font-family:var(--mono);color:var(--text3)}
+.statusbar-right{display:flex;gap:6px;align-items:center}
 
-    body {
-      font-family: var(--ff-sans);
-      background: var(--bg-secondary);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding: 0 0 3rem;
-    }
+/* BOTTOM NAV */
+.bottomnav{display:flex;background:var(--bg2);border-top:0.5px solid var(--border);padding:12px 0 20px;margin-top:auto}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:all 0.2s}
+.bnav-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all 0.25s;color:var(--text3)}
+.bnav-label{font-size:11px;font-family:var(--mono);color:var(--text3);transition:color 0.2s;letter-spacing:0.04em}
+.bnav-item.active .bnav-icon{background:rgba(255,32,78,0.15);color:var(--pink)}
+.bnav-item.active .bnav-label{color:var(--pink)}
+.bnav-item:hover .bnav-icon{background:rgba(255,32,78,0.08);color:var(--text2)}
 
-    .app {
-      width: 100%;
-      max-width: 420px;
-      background: var(--bg);
-      min-height: 100vh;
-    }
+/* CONTENT AREA */
+.content{flex:1;overflow-y:auto;padding:0 0 8px;scrollbar-width:none}
+.content::-webkit-scrollbar{display:none}
 
-    .screen { display: none; }
-    .screen.active { display: block; }
+/* HERO CARD */
+.hero-card{margin:16px 16px 0;border-radius:var(--rxl);padding:28px 24px 24px;background:linear-gradient(135deg,var(--plum) 0%,var(--crimson) 50%,var(--navy) 100%);position:relative;overflow:hidden}
+.hero-card::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,32,78,0.15);pointer-events:none}
+.hero-card::after{content:'';position:absolute;bottom:-30px;left:-20px;width:120px;height:120px;border-radius:50%;background:rgba(0,34,77,0.3);pointer-events:none}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.55);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+.hero-title{font-family:var(--ff);font-size:22px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:6px;position:relative;z-index:1}
+.hero-sub{font-size:13px;color:rgba(255,255,255,0.6);line-height:1.5;position:relative;z-index:1}
+.hero-stats{display:flex;gap:16px;margin-top:20px;position:relative;z-index:1}
+.hero-stat{flex:1;background:rgba(0,0,0,0.25);border-radius:var(--r);padding:12px;border:0.5px solid rgba(255,255,255,0.1)}
+.hero-stat-num{font-family:var(--ff);font-size:24px;font-weight:700;color:#fff;line-height:1}
+.hero-stat-label{font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;font-family:var(--mono)}
 
-    /* NAV */
-    .nav {
-      display: flex;
-      border-bottom: 0.5px solid var(--border);
-      background: var(--bg);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .nav-tab {
-      flex: 1;
-      padding: 16px 4px 14px;
-      font-size: 12px;
-      font-family: var(--ff-sans);
-      font-weight: 500;
-      color: var(--text-secondary);
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      cursor: pointer;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .nav-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+/* SECTION */
+.section{padding:20px 16px 0}
+.section-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.section-title{font-family:var(--ff);font-size:16px;font-weight:600;color:var(--text)}
+.section-link{font-size:12px;color:var(--pink);font-family:var(--mono);cursor:pointer;letter-spacing:0.03em}
 
-    /* CONTRACT SCREEN */
-    .contract-header {
-      padding: 1.75rem 1.25rem 1.25rem;
-      border-bottom: 0.5px solid var(--border);
-      margin-bottom: 1.5rem;
-    }
-    .contract-eyebrow {
-      font-family: var(--ff-mono);
-      font-size: 11px;
-      color: var(--text-tertiary);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-    .contract-title {
-      font-family: var(--ff-serif);
-      font-size: 26px;
-      line-height: 1.2;
-      color: var(--text);
-      margin-bottom: 0.5rem;
-    }
-    .contract-sub {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
+/* CARDS */
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:16px;margin-bottom:10px;transition:all 0.25s;cursor:pointer}
+.card:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-1px)}
 
-    .field-block { padding: 0 1.25rem; margin-bottom: 1.25rem; }
-    .field-label {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
-      display: block;
-    }
-    textarea, input[type="text"], input[type="password"] {
-      width: 100%;
-      font-family: var(--ff-sans);
-      font-size: 15px;
-      color: var(--text);
-      background: var(--bg-secondary);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 12px 14px;
-      resize: none;
-      line-height: 1.6;
-      transition: border-color 0.15s;
-    }
-    textarea:focus, input[type="text"]:focus { outline: none; border-color: var(--amber); }
-    .char-count {
-      font-size: 12px;
-      color: var(--text-tertiary);
-      text-align: right;
-      margin-top: 4px;
-      font-family: var(--ff-mono);
-    }
+/* LOCKED COMMITMENT */
+.commitment-locked{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--rl);padding:20px;margin:16px 16px 0;position:relative;overflow:hidden}
+.commitment-locked::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--pink),var(--crimson))}
+.lock-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--pink);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.lock-text{font-family:var(--ff);font-size:15px;color:var(--text);line-height:1.5;font-style:italic}
 
-    .contract-locked {
-      background: var(--amber-light);
-      border: 0.5px solid #FAC775;
-      border-radius: var(--radius-lg);
-      margin: 0 1.25rem 1.5rem;
-      padding: 1.25rem;
-      display: none;
-    }
-    .contract-locked.show { display: block; }
-    .locked-label {
-      font-family: var(--ff-mono);
-      font-size: 11px;
-      color: var(--amber);
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-    .locked-text {
-      font-family: var(--ff-serif);
-      font-size: 16px;
-      color: var(--amber-dark);
-      line-height: 1.5;
-      font-style: italic;
-    }
-    @media (prefers-color-scheme: dark) {
-      .locked-text { color: #FAC775; }
-    }
+/* FORM ELEMENTS */
+.field{margin-bottom:16px}
+.field-label{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:block}
+textarea,input[type=text]{width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);padding:14px 16px;font-family:var(--fm);font-size:14px;color:var(--text);resize:none;line-height:1.6;transition:all 0.2s;outline:none}
+textarea::placeholder,input::placeholder{color:var(--text3)}
+textarea:focus,input[type=text]:focus{border-color:var(--pink);background:var(--bg4);box-shadow:0 0 0 3px rgba(255,32,78,0.1)}
+.char-hint{font-family:var(--mono);font-size:11px;color:var(--text3);text-align:right;margin-top:5px}
 
-    .unlock-zone {
-      background: var(--red-light);
-      border: 0.5px solid #F7C1C1;
-      border-radius: var(--radius-lg);
-      margin: 0 1.25rem 1.5rem;
-      padding: 1.25rem;
-      display: none;
-    }
-    .unlock-zone.show { display: block; }
-    .unlock-warning { font-size: 13px; color: var(--red); line-height: 1.6; margin-bottom: 1rem; }
-    .unlock-prompt { font-family: var(--ff-mono); font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
-    .match-indicator { font-family: var(--ff-mono); font-size: 12px; margin-top: 6px; min-height: 18px; color: var(--red); }
-    .match-indicator.ok { color: var(--teal); }
+/* BUTTONS */
+.btn-primary{width:100%;padding:16px;border:none;border-radius:var(--r);font-family:var(--ff);font-size:15px;font-weight:600;cursor:pointer;transition:all 0.25s;background:var(--pink);color:#fff;letter-spacing:0.02em}
+.btn-primary:hover{background:var(--crimson);transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,32,78,0.3)}
+.btn-primary:active{transform:scale(0.98)}
+.btn-primary:disabled{opacity:0.3;cursor:default;transform:none;box-shadow:none}
+.btn-ghost{width:100%;padding:14px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:var(--fm);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s;background:transparent;color:var(--text2);margin-top:10px}
+.btn-ghost:hover{border-color:var(--pink);color:var(--pink);background:rgba(255,32,78,0.06)}
+.btn-danger{width:100%;padding:14px;border:none;border-radius:var(--r);font-family:var(--fm);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s;background:rgba(160,21,62,0.2);color:#FF6B8A;border:0.5px solid rgba(160,21,62,0.4);margin-top:10px}
+.btn-danger:hover{background:var(--crimson);color:#fff;border-color:var(--crimson)}
+.btn-danger:disabled{opacity:0.3;cursor:default}
 
-    .btn {
-      display: block;
-      width: calc(100% - 2.5rem);
-      margin: 0 1.25rem;
-      padding: 14px;
-      font-family: var(--ff-sans);
-      font-size: 15px;
-      font-weight: 500;
-      border-radius: var(--radius-md);
-      border: none;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-    }
-    .btn:active { transform: scale(0.98); }
-    .btn-amber { background: var(--amber); color: #FFF8F0; }
-    .btn-amber:disabled { opacity: 0.4; cursor: default; }
-    .btn-ghost {
-      background: var(--bg-secondary);
-      color: var(--text);
-      border: 0.5px solid var(--border);
-    }
-    .btn-danger { background: var(--red); color: #FFF0F0; margin-top: 1rem; }
-    .btn-danger:disabled { opacity: 0.4; cursor: default; }
+/* APP GRID */
+.app-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.app-tile{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:16px 14px;cursor:pointer;transition:all 0.25s;position:relative;user-select:none}
+.app-tile:hover{border-color:var(--border2);background:var(--surface2)}
+.app-tile.blocked{background:rgba(160,21,62,0.12);border-color:rgba(255,32,78,0.35)}
+.app-tile-icon{font-size:26px;margin-bottom:10px;display:block}
+.app-tile-name{font-family:var(--ff);font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.app-tile-status{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.05em}
+.app-tile.blocked .app-tile-status{color:var(--pink)}
+.tile-check{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;background:var(--pink);display:none;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.app-tile.blocked .tile-check{display:flex}
 
-    /* BLOCKLIST SCREEN */
-    .screen-pad { padding: 0 1.25rem; }
-    .section-head { margin-bottom: 1rem; padding-top: 1.5rem; }
-    .section-title { font-family: var(--ff-serif); font-size: 22px; color: var(--text); margin-bottom: 0.25rem; }
-    .section-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+/* REDIRECT ITEMS */
+.redirect-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;transition:all 0.2s}
+.redirect-item:hover{border-color:var(--border2)}
+.ri-text{flex:1;font-size:14px;color:var(--text2)}
+.ri-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:4px;transition:color 0.2s;display:flex;align-items:center}
+.ri-del:hover{color:var(--pink)}
+.add-row{display:flex;gap:8px}
+.add-row input{flex:1}
+.add-row .btn-add{padding:0 18px;background:var(--pink);color:#fff;border:none;border-radius:var(--r);font-family:var(--ff);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.25s;white-space:nowrap;height:48px}
+.add-row .btn-add:hover{background:var(--crimson)}
 
-    .app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
-    .app-card {
-      background: var(--bg);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 14px 12px;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-      position: relative;
-      user-select: none;
-    }
-    .app-card.blocked { background: var(--teal-light); border-color: #9FE1CB; }
-    .app-icon { font-size: 22px; margin-bottom: 8px; display: block; line-height: 1; }
-    .app-name { font-size: 14px; font-weight: 500; color: var(--text); display: block; margin-bottom: 2px; }
-    .app-status { font-family: var(--ff-mono); font-size: 11px; color: var(--text-tertiary); }
-    .app-card.blocked .app-status { color: var(--teal); }
-    .check-badge {
-      position: absolute; top: 10px; right: 10px;
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      background: var(--teal);
-      display: none; align-items: center; justify-content: center;
-    }
-    .app-card.blocked .check-badge { display: flex; }
-    .check-badge i { font-size: 11px; color: #fff; }
+/* INTERCEPT PREVIEW */
+.intercept-card{margin:16px;border-radius:var(--rxl);overflow:hidden;border:0.5px solid var(--border2)}
+.intercept-header{background:linear-gradient(160deg,var(--plum),var(--navy) 80%);padding:28px 20px 24px;text-align:center;position:relative;overflow:hidden}
+.intercept-header::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;background:rgba(255,32,78,0.08)}
+.int-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,32,78,0.2);border:0.5px solid rgba(255,32,78,0.4);border-radius:20px;padding:5px 12px;font-family:var(--mono);font-size:10px;color:var(--pink);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px}
+.int-heading{font-family:var(--ff);font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;position:relative;z-index:1}
+.int-quote{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5;font-style:italic;position:relative;z-index:1;max-width:260px;margin:0 auto}
+.intercept-body{background:var(--bg2);padding:16px}
+.int-section-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+.int-option{display:flex;align-items:center;gap:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s}
+.int-option:hover{border-color:var(--pink);background:var(--surface2)}
+.int-opt-text{flex:1;font-size:13px;color:var(--text)}
+.int-override{text-align:center;padding:12px 16px 16px}
+.int-override-btn{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:var(--mono);text-decoration:underline;text-underline-offset:3px;letter-spacing:0.03em;transition:color 0.2s}
+.int-override-btn:hover{color:#FF6B8A}
 
-    .redirect-list { margin-bottom: 1.5rem; }
-    .redirect-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 12px 14px;
-      background: var(--bg);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-md);
-      margin-bottom: 8px;
-    }
-    .redirect-text { flex: 1; font-size: 14px; color: var(--text); }
-    .redirect-del {
-      background: none; border: none; cursor: pointer;
-      color: var(--text-tertiary); font-size: 16px; padding: 4px;
-      transition: color 0.15s;
-    }
-    .redirect-del:hover { color: var(--red); }
+/* UNLOCK ZONE */
+.unlock-zone{background:rgba(93,14,65,0.2);border:0.5px solid rgba(160,21,62,0.35);border-radius:var(--rl);padding:18px;margin-top:12px;display:none}
+.unlock-zone.show{display:block;animation:fadeUp 0.2s ease}
+.unlock-warn{font-size:13px;color:#FF6B8A;line-height:1.6;margin-bottom:12px}
+.unlock-prompt{font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:8px}
+.match-hint{font-family:var(--mono);font-size:11px;color:#FF6B8A;margin-top:6px;min-height:16px;transition:color 0.2s}
+.match-hint.ok{color:#5DCAA5}
 
-    .add-redirect-row { display: flex; gap: 8px; margin-bottom: 1.5rem; }
-    .add-redirect-row input { flex: 1; }
-    .btn-sm {
-      padding: 10px 16px;
-      font-family: var(--ff-sans);
-      font-size: 14px;
-      font-weight: 500;
-      background: var(--amber);
-      color: #FFF8F0;
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      white-space: nowrap;
-    }
+/* SIM BUTTONS */
+.sim-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.sim-btn{padding:8px 14px;border-radius:20px;font-family:var(--mono);font-size:11px;border:0.5px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.2s;letter-spacing:0.04em}
+.sim-btn:hover,.sim-btn.active{background:rgba(255,32,78,0.15);border-color:var(--pink);color:var(--pink)}
 
-    /* INTERCEPT SCREEN */
-    .intercept-screen {
-      min-height: 540px;
-      background: var(--gray-light);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      margin: 0 1.25rem 1.5rem;
-      border: 0.5px solid var(--border);
-    }
-    .intercept-top {
-      background: var(--amber-dark);
-      padding: 2rem 1.5rem 1.5rem;
-      text-align: center;
-    }
-    .intercept-caught {
-      font-family: var(--ff-mono);
-      font-size: 11px;
-      color: #FAC775;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 0.75rem;
-    }
-    .intercept-heading {
-      font-family: var(--ff-serif);
-      font-size: 22px;
-      color: #FAEEDA;
-      line-height: 1.25;
-      margin-bottom: 0.5rem;
-    }
-    .intercept-sub {
-      font-size: 13px;
-      color: #FAC775;
-      line-height: 1.5;
-      font-style: italic;
-    }
-    .intercept-options { padding: 1.25rem; }
-    .intercept-label {
-      font-family: var(--ff-mono);
-      font-size: 11px;
-      color: var(--text-tertiary);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 0.75rem;
-    }
-    .intercept-option {
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px;
-      background: var(--bg);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-md);
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: border-color 0.15s;
-    }
-    .intercept-option:hover { border-color: var(--amber); }
-    .io-title { font-size: 14px; font-weight: 500; color: var(--text); }
-    .intercept-override { text-align: center; padding: 0.5rem 1.25rem 1.5rem; }
-    .override-link {
-      font-size: 12px;
-      color: var(--text-tertiary);
-      cursor: pointer;
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      background: none; border: none;
-      font-family: var(--ff-sans);
-    }
-    .override-link:hover { color: var(--red); }
+/* MINI STATS */
+.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 16px 0}
+.mini-stat{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:16px;text-align:center}
+.mini-stat-num{font-family:var(--ff);font-size:30px;font-weight:700;color:var(--text);line-height:1}
+.mini-stat-label{font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
+.mini-stat-num.pink{color:var(--pink)}
 
-    .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.5rem 0; }
+/* INFO BOX */
+.info-box{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.info-box-label{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.info-box p{font-size:12px;color:var(--text3);line-height:1.6}
 
-    .info-box {
-      background: var(--bg-secondary);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.25rem;
-    }
-    .info-box-title {
-      font-family: var(--ff-mono);
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 0.5rem;
-    }
-    .info-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.pad{padding:0 16px}
+.gap{height:14px}
+</style>
 
-    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
-    .stat-card { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 14px; text-align: center; }
-    .stat-num { font-family: var(--ff-serif); font-size: 28px; color: var(--text); line-height: 1; margin-bottom: 4px; }
-    .stat-label { font-size: 12px; color: var(--text-secondary); }
-  </style>
-</head>
-<body>
+<h2 class="sr-only">Focus Redirect app — redesigned dark UI with your colour palette</h2>
+
 <div class="app">
-  <nav class="nav" role="tablist">
-    <button class="nav-tab active" role="tab" onclick="showScreen('contract')">Contract</button>
-    <button class="nav-tab" role="tab" onclick="showScreen('blocklist')">Blocklist</button>
-    <button class="nav-tab" role="tab" onclick="showScreen('intercept')">Preview</button>
-  </nav>
 
-  <!-- SCREEN 1: CONTRACT -->
+  <!-- ══ SCREEN: CONTRACT ══ -->
   <div class="screen active" id="screen-contract">
-    <div class="contract-header">
-      <p class="contract-eyebrow">Phase 1 · Commitment contract</p>
-      <h1 class="contract-title">What are you protecting your time for?</h1>
-      <p class="contract-sub">Write this when you're clear-headed. Your future self will read it when the urge hits.</p>
+    <div class="statusbar"><span style="font-weight:500">9:41</span><div class="statusbar-right"><i class="ti ti-wifi" style="font-size:14px"></i><i class="ti ti-battery" style="font-size:14px"></i></div></div>
+
+    <div class="hero-card">
+      <p class="hero-eyebrow">Focus Redirect · Phase 1</p>
+      <h1 class="hero-title">What are you protecting your time for?</h1>
+      <p class="hero-sub">Write this when clear headed. Your future self reads it when the urge hits.</p>
     </div>
 
-    <div class="contract-locked" id="locked-display">
-      <p class="locked-label"><i class="ti ti-lock" aria-hidden="true"></i> Your commitment</p>
-      <p class="locked-text" id="locked-text-display"></p>
-    </div>
+    <div class="content">
+      <div class="gap"></div>
 
-    <div id="edit-zone">
-      <div class="field-block">
-        <label class="field-label" for="commitment-text">Your commitment — in your own words</label>
-        <textarea id="commitment-text" rows="5" maxlength="500" placeholder="e.g. I'm protecting my mornings so I can practise snooker drills before work. Every hour I lose to Instagram is an hour I don't become the player I want to be."></textarea>
-        <p class="char-count"><span id="char-count">0</span> / 500</p>
+      <!-- locked state -->
+      <div class="commitment-locked" id="locked-display" style="display:none">
+        <p class="lock-eyebrow"><i class="ti ti-lock" style="font-size:13px" aria-hidden="true"></i> Your commitment</p>
+        <p class="lock-text" id="locked-text-display"></p>
       </div>
-      <div class="field-block">
-        <label class="field-label" for="commitment-goal">One specific thing you're working towards</label>
-        <input type="text" id="commitment-goal" placeholder="e.g. Nail the stun shot by end of month" maxlength="100">
+
+      <!-- edit state -->
+      <div id="edit-zone" class="pad">
+        <div class="field">
+          <label class="field-label" for="commitment-text">In your own words</label>
+          <textarea id="commitment-text" rows="5" maxlength="500" placeholder="e.g. I'm protecting my mornings for focused work. Every hour I lose to Instagram is an hour I don't become the person I want to be."></textarea>
+          <p class="char-hint"><span id="char-count">0</span> / 500</p>
+        </div>
+        <div class="field">
+          <label class="field-label" for="commitment-goal">One specific goal</label>
+          <input type="text" id="commitment-goal" placeholder="e.g. finish one book by the end of this week" maxlength="100">
+        </div>
+        <button class="btn-primary" id="save-btn" onclick="saveContract()" disabled>Lock in my commitment</button>
       </div>
-      <button class="btn btn-amber" id="save-contract-btn" onclick="saveContract()" disabled>
-        Lock in my commitment
-      </button>
-    </div>
 
-    <hr class="divider" style="margin: 1.5rem 1.25rem;">
-
-    <div class="unlock-zone" id="unlock-zone">
-      <p class="unlock-warning"><strong>To change your commitment,</strong> you must type exactly why you're abandoning it. This is not a dismiss button.</p>
-      <p class="unlock-prompt">Type exactly: "I am giving up because"</p>
-      <input type="text" id="unlock-input" placeholder='I am giving up because' oninput="checkUnlock()">
-      <p class="match-indicator" id="unlock-indicator"></p>
-      <button class="btn btn-danger" id="unlock-btn" onclick="unlockContract()" disabled style="width:100%;">
-        Override my commitment
-      </button>
-    </div>
-
-    <div id="unlock-trigger-zone" style="display:none; padding: 0 1.25rem;">
-      <button class="btn btn-ghost" onclick="showUnlock()" style="margin:0; width:100%;">
-        I want to change my commitment
-      </button>
-    </div>
-
-    <div style="padding: 1rem 1.25rem 0;">
-      <div class="info-box">
-        <p class="info-box-title"><i class="ti ti-info-circle" aria-hidden="true"></i> How this works</p>
-        <p>This contract is stored locally in your browser. When you try to open a blocked app, you'll see your own words before anything else. To disable the blocker, you must type out your reason — not click a dismiss button.</p>
+      <!-- unlock friction -->
+      <div id="unlock-trigger-zone" style="display:none" class="pad">
+        <button class="btn-ghost" onclick="showUnlock()">I want to change my commitment</button>
       </div>
+      <div class="unlock-zone pad" id="unlock-zone" style="margin:0 16px">
+        <p class="unlock-warn">To change your commitment you must type exactly why you're giving up. This is not a dismiss button.</p>
+        <p class="unlock-prompt">Type: "I am giving up because"</p>
+        <input type="text" id="unlock-input" placeholder="I am giving up because" oninput="checkUnlock()">
+        <p class="match-hint" id="unlock-hint"></p>
+        <button class="btn-danger" id="unlock-btn" onclick="unlockContract()" disabled>Override my commitment</button>
+      </div>
+
+      <div class="gap"></div>
+      <div class="pad">
+        <div class="info-box">
+          <p class="info-box-label"><i class="ti ti-info-circle" style="font-size:13px" aria-hidden="true"></i> how this works</p>
+          <p>Saved locally in your browser. When a blocked app is intercepted, you'll see these words first — not a dismiss button.</p>
+        </div>
+      </div>
+      <div class="gap"></div>
     </div>
+
+    <nav class="bottomnav">
+      <div class="bnav-item active" onclick="showScreen('contract')"><div class="bnav-icon"><i class="ti ti-file-text" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">contract</span></div>
+      <div class="bnav-item" onclick="showScreen('blocklist')"><div class="bnav-icon"><i class="ti ti-shield" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">blocklist</span></div>
+      <div class="bnav-item" onclick="showScreen('intercept')"><div class="bnav-icon"><i class="ti ti-eye" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">preview</span></div>
+    </nav>
   </div>
 
-  <!-- SCREEN 2: BLOCKLIST -->
+  <!-- ══ SCREEN: BLOCKLIST ══ -->
   <div class="screen" id="screen-blocklist">
-    <div class="screen-pad">
-      <div class="section-head">
-        <h2 class="section-title">Apps to intercept</h2>
-        <p class="section-sub">Tap to toggle. These will be caught at OS level before you see the feed.</p>
-      </div>
-      <div class="app-grid" id="app-grid"></div>
-      <hr class="divider" style="margin: 0.5rem 0 1.5rem;">
-      <div class="section-head" style="padding-top:0;">
-        <h2 class="section-title">Where to redirect you</h2>
-        <p class="section-sub">Add things your clear-headed self wants your addicted self to reach for instead.</p>
-      </div>
-      <div class="redirect-list" id="redirect-list"></div>
-      <div class="add-redirect-row">
-        <input type="text" id="new-redirect" placeholder="e.g. Snooker drill #4 — stun shot" maxlength="80" onkeydown="if(event.key==='Enter')addRedirect()">
-        <button class="btn-sm" onclick="addRedirect()">Add</button>
-      </div>
-      <div class="info-box">
-        <p class="info-box-title"><i class="ti ti-device-mobile" aria-hidden="true"></i> Phase 3 preview</p>
-        <p>In Phase 3 you'll install an Android Accessibility Service that catches these apps at the OS level — before you've seen a single pixel of the feed. For now, this data saves in your browser.</p>
-      </div>
+    <div class="statusbar"><span style="font-weight:500">9:41</span><div class="statusbar-right"><i class="ti ti-wifi" style="font-size:14px"></i><i class="ti ti-battery" style="font-size:14px"></i></div></div>
+
+    <div class="hero-card" style="background:linear-gradient(135deg,var(--navy) 0%,var(--plum) 100%)">
+      <p class="hero-eyebrow">Apps to intercept</p>
+      <h1 class="hero-title">Block the scroll,<br>keep the habit.</h1>
+      <p class="hero-sub">Caught at OS level before you ever see the feed.</p>
     </div>
+
+    <div class="content">
+      <div class="section">
+        <div class="section-row"><span class="section-title">Blocked apps</span></div>
+        <div class="app-grid" id="app-grid"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-row"><span class="section-title">Redirects</span></div>
+        <div id="redirect-list"></div>
+        <div class="add-row">
+          <input type="text" id="new-redirect" placeholder="Add something to reach for instead..." maxlength="80" onkeydown="if(event.key==='Enter')addRedirect()">
+          <button class="btn-add" onclick="addRedirect()">Add</button>
+        </div>
+        <div class="gap"></div>
+        <div class="info-box">
+          <p class="info-box-label"><i class="ti ti-device-mobile" style="font-size:13px" aria-hidden="true"></i> phase 3</p>
+          <p>Android Accessibility Service intercepts these at OS level — before a single pixel of feed loads.</p>
+        </div>
+      </div>
+      <div class="gap"></div>
+    </div>
+
+    <nav class="bottomnav">
+      <div class="bnav-item" onclick="showScreen('contract')"><div class="bnav-icon"><i class="ti ti-file-text" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">contract</span></div>
+      <div class="bnav-item active" onclick="showScreen('blocklist')"><div class="bnav-icon"><i class="ti ti-shield" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">blocklist</span></div>
+      <div class="bnav-item" onclick="showScreen('intercept')"><div class="bnav-icon"><i class="ti ti-eye" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">preview</span></div>
+    </nav>
   </div>
 
-  <!-- SCREEN 3: INTERCEPT PREVIEW -->
+  <!-- ══ SCREEN: INTERCEPT PREVIEW ══ -->
   <div class="screen" id="screen-intercept">
-    <div style="padding: 0 1.25rem 1rem;">
-      <div class="section-head">
-        <h2 class="section-title">Redirect screen</h2>
-        <p class="section-sub">This is what you'll see instead of the feed. Simulate different apps below.</p>
+    <div class="statusbar"><span style="font-weight:500">9:41</span><div class="statusbar-right"><i class="ti ti-wifi" style="font-size:14px"></i><i class="ti ti-battery" style="font-size:14px"></i></div></div>
+
+    <div class="content">
+      <div class="mini-stats">
+        <div class="mini-stat"><p class="mini-stat-num pink" id="stat-intercepted">0</p><p class="mini-stat-label">intercepted</p></div>
+        <div class="mini-stat"><p class="mini-stat-num" id="stat-redirected">0</p><p class="mini-stat-label">redirected</p></div>
       </div>
-      <div class="stat-row">
-        <div class="stat-card">
-          <p class="stat-num" id="stat-intercepted">0</p>
-          <p class="stat-label">intercepted today</p>
+
+      <div class="section">
+        <div class="section-row"><span class="section-title">Simulate</span></div>
+        <div class="sim-row" id="sim-buttons"></div>
+      </div>
+
+      <div class="intercept-card" id="intercept-mockup">
+        <div class="intercept-header">
+          <div class="int-badge"><i class="ti ti-shield-check" style="font-size:12px" aria-hidden="true"></i> intercepted</div>
+          <h3 class="int-heading" id="int-heading">You opened Instagram</h3>
+          <p class="int-quote" id="int-quote">Set your commitment on the Contract screen to see your words here.</p>
         </div>
-        <div class="stat-card">
-          <p class="stat-num" id="stat-redirected">0</p>
-          <p class="stat-label">redirected</p>
+        <div class="intercept-body">
+          <p class="int-section-label">your sober self left these for you</p>
+          <div id="int-options"></div>
+          <div class="int-override">
+            <button class="int-override-btn" onclick="logOverride()">let me in anyway — I've decided this</button>
+          </div>
         </div>
       </div>
-      <div style="margin-bottom: 1rem;">
-        <label class="field-label">Simulate intercept for</label>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;" id="sim-buttons"></div>
+
+      <div class="section">
+        <div class="info-box">
+          <p class="info-box-label"><i class="ti ti-clock" style="font-size:13px" aria-hidden="true"></i> phase 4 · time-aware blocking</p>
+          <p>The override button gets harder to press at your danger windows. The app learns when you're weakest and gets stricter exactly then.</p>
+        </div>
       </div>
+      <div class="gap"></div>
     </div>
 
-    <div class="intercept-screen" id="intercept-mockup">
-      <div class="intercept-top">
-        <p class="intercept-caught"><i class="ti ti-shield-check" aria-hidden="true"></i> Intercepted</p>
-        <h3 class="intercept-heading" id="intercept-heading">You opened Instagram</h3>
-        <p class="intercept-sub" id="intercept-commitment-quote">Loading your commitment...</p>
-      </div>
-      <div class="intercept-options">
-        <p class="intercept-label">Your sober self left these for you</p>
-        <div id="intercept-options-list"></div>
-      </div>
-      <div class="intercept-override">
-        <button class="override-link" onclick="simulateOverride()">
-          Let me in anyway — I've decided this
-        </button>
-      </div>
-    </div>
-
-    <div style="padding: 0 1.25rem;">
-      <div class="info-box">
-        <p class="info-box-title"><i class="ti ti-clock" aria-hidden="true"></i> Phase 4 · Time-aware blocking</p>
-        <p>The override button will get harder to press at your danger windows (e.g. 11pm). The app learns when you're weakest and gets stricter exactly then.</p>
-      </div>
-    </div>
+    <nav class="bottomnav">
+      <div class="bnav-item" onclick="showScreen('contract')"><div class="bnav-icon"><i class="ti ti-file-text" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">contract</span></div>
+      <div class="bnav-item" onclick="showScreen('blocklist')"><div class="bnav-icon"><i class="ti ti-shield" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">blocklist</span></div>
+      <div class="bnav-item active" onclick="showScreen('intercept')"><div class="bnav-icon"><i class="ti ti-eye" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">preview</span></div>
+    </nav>
   </div>
+
 </div>
 
 <script>
-  const APPS = [
-    { id:'instagram', name:'Instagram', icon:'📸' },
-    { id:'tiktok',   name:'TikTok',   icon:'🎵' },
-    { id:'snapchat', name:'Snapchat', icon:'👻' },
-    { id:'facebook', name:'Facebook', icon:'👤' },
-  ];
+const APPS=[
+  {id:'instagram',name:'Instagram',icon:'📸'},
+  {id:'tiktok',name:'TikTok',icon:'🎵'},
+  {id:'snapchat',name:'Snapchat',icon:'👻'},
+  {id:'facebook',name:'Facebook',icon:'👤'},
+];
+const DEF_REDIRECTS=[
+  {id:'r1',text:'🎱  Snooker drill #4 — stun shot practice'},
+  {id:'r2',text:'🃏  Cardistry: revolution cut, 10 slow reps'},
+  {id:'r3',text:'🎧  Deep work block — 30 min, no phone'},
+];
 
-  const DEFAULT_REDIRECTS = [
-    { id:'r1', text:'🎱  Snooker drill #4 — stun shot practice' },
-    { id:'r2', text:'🃏  Cardistry: revolution cut, 10 slow reps' },
-    { id:'r3', text:'🎧  Deep house session — 30 min, no phone' },
-  ];
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
 
-  function load(key, def) {
-    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; }
-  }
-  function save(key, val) {
-    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
-  }
+let S={
+  contract:load('frc_contract',''),
+  goal:load('frc_goal',''),
+  blocked:load('frc_blocked',['instagram','tiktok','snapchat','facebook']),
+  redirects:load('frc_redirects',DEF_REDIRECTS),
+  intercepted:load('frc_int',0),
+  redirected:load('frc_red',0),
+};
+function persist(){save('frc_contract',S.contract);save('frc_goal',S.goal);save('frc_blocked',S.blocked);save('frc_redirects',S.redirects);save('frc_int',S.intercepted);save('frc_red',S.redirected)}
 
-  let state = {
-    contract: load('frc_contract', ''),
-    goal: load('frc_goal', ''),
-    blocked: load('frc_blocked', ['instagram','tiktok','snapchat','facebook']),
-    redirects: load('frc_redirects', DEFAULT_REDIRECTS),
-    interceptToday: load('frc_intercept_today', 0),
-    redirectedToday: load('frc_redirected_today', 0),
-  };
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  if(name==='intercept')renderIntercept();
+}
 
-  function persist() {
-    save('frc_contract', state.contract);
-    save('frc_goal', state.goal);
-    save('frc_blocked', state.blocked);
-    save('frc_redirects', state.redirects);
-    save('frc_intercept_today', state.interceptToday);
-    save('frc_redirected_today', state.redirectedToday);
-  }
+// CONTRACT
+const ta=document.getElementById('commitment-text');
+const cc=document.getElementById('char-count');
+const sb=document.getElementById('save-btn');
+ta.addEventListener('input',()=>{cc.textContent=ta.value.length;sb.disabled=ta.value.trim().length<30});
 
-  function showScreen(name) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('screen-' + name).classList.add('active');
-    const map = { contract:0, blocklist:1, intercept:2 };
-    document.querySelectorAll('.nav-tab')[map[name]].classList.add('active');
-    if (name === 'intercept') renderIntercept();
-  }
+function saveContract(){S.contract=ta.value.trim();S.goal=document.getElementById('commitment-goal').value.trim();persist();renderContract()}
+function renderContract(){
+  const has=S.contract.length>0;
+  document.getElementById('edit-zone').style.display=has?'none':'block';
+  const ld=document.getElementById('locked-display');
+  ld.style.display=has?'block':'none';
+  document.getElementById('locked-text-display').textContent=S.contract;
+  document.getElementById('unlock-trigger-zone').style.display=has?'block':'none';
+  document.getElementById('unlock-zone').classList.remove('show');
+  document.getElementById('unlock-input').value='';
+  document.getElementById('unlock-hint').textContent='';
+  document.getElementById('unlock-btn').disabled=true;
+  if(!has){ta.value='';document.getElementById('commitment-goal').value='';cc.textContent='0';sb.disabled=true}
+}
+function showUnlock(){document.getElementById('unlock-zone').classList.toggle('show')}
+const REQ='i am giving up because';
+function checkUnlock(){
+  const v=document.getElementById('unlock-input').value.trim().toLowerCase();
+  const h=document.getElementById('unlock-hint');
+  const b=document.getElementById('unlock-btn');
+  if(v===REQ){h.textContent='✓ you may proceed';h.className='match-hint ok';b.disabled=false}
+  else if(REQ.startsWith(v)&&v.length>0){h.textContent='keep typing...';h.className='match-hint';b.disabled=true}
+  else if(v.length>0){h.textContent='type it exactly as shown';h.className='match-hint';b.disabled=true}
+  else{h.textContent='';b.disabled=true}
+}
+function unlockContract(){S.contract='';S.goal='';persist();renderContract()}
 
-  // CONTRACT
-  const ta = document.getElementById('commitment-text');
-  const goalIn = document.getElementById('commitment-goal');
-  const saveBtn = document.getElementById('save-contract-btn');
-  const charCount = document.getElementById('char-count');
-
-  ta.addEventListener('input', () => {
-    charCount.textContent = ta.value.length;
-    saveBtn.disabled = ta.value.trim().length < 30;
+// BLOCKLIST
+function renderApps(){
+  const g=document.getElementById('app-grid');g.innerHTML='';
+  APPS.forEach(app=>{
+    const bl=S.blocked.includes(app.id);
+    const d=document.createElement('div');
+    d.className='app-tile'+(bl?' blocked':'');
+    d.setAttribute('role','checkbox');d.setAttribute('aria-checked',bl);d.setAttribute('tabindex','0');
+    d.innerHTML=`<div class="tile-check" aria-hidden="true"><i class="ti ti-check"></i></div><span class="app-tile-icon">${app.icon}</span><span class="app-tile-name">${app.name}</span><span class="app-tile-status">${bl?'intercepting':'not blocked'}</span>`;
+    d.onclick=()=>toggleApp(app.id);
+    d.onkeydown=e=>{if(e.key===' '||e.key==='Enter')toggleApp(app.id)};
+    g.appendChild(d);
   });
+}
+function toggleApp(id){const i=S.blocked.indexOf(id);if(i>-1)S.blocked.splice(i,1);else S.blocked.push(id);persist();renderApps()}
 
-  function saveContract() {
-    state.contract = ta.value.trim();
-    state.goal = goalIn.value.trim();
-    persist();
-    renderContractState();
-  }
+function renderRedirects(){
+  const l=document.getElementById('redirect-list');l.innerHTML='';
+  S.redirects.forEach(r=>{
+    const d=document.createElement('div');d.className='redirect-item';
+    d.innerHTML=`<span class="ri-text">${r.text}</span><button class="ri-del" onclick="delRedirect('${r.id}')" aria-label="Remove"><i class="ti ti-x" aria-hidden="true"></i></button>`;
+    l.appendChild(d);
+  });
+}
+function addRedirect(){const i=document.getElementById('new-redirect');const v=i.value.trim();if(!v)return;S.redirects.push({id:'r'+Date.now(),text:v});i.value='';persist();renderRedirects()}
+function delRedirect(id){S.redirects=S.redirects.filter(r=>r.id!==id);persist();renderRedirects()}
 
-  function renderContractState() {
-    const has = state.contract.length > 0;
-    document.getElementById('edit-zone').style.display = has ? 'none' : 'block';
-    document.getElementById('locked-display').classList.toggle('show', has);
-    document.getElementById('locked-text-display').textContent = state.contract;
-    document.getElementById('unlock-trigger-zone').style.display = has ? 'block' : 'none';
-    document.getElementById('unlock-zone').classList.remove('show');
-    document.getElementById('unlock-input').value = '';
-    document.getElementById('unlock-indicator').textContent = '';
-    document.getElementById('unlock-btn').disabled = true;
-    if (!has) { ta.value = ''; goalIn.value = ''; charCount.textContent = '0'; saveBtn.disabled = true; }
-  }
+// INTERCEPT
+let curApp=null;
+function renderIntercept(appId){
+  const app=APPS.find(a=>a.id===appId)||APPS.find(a=>S.blocked.includes(a.id))||APPS[0];
+  curApp=app;
+  document.getElementById('int-heading').textContent=`You opened ${app.name}`;
+  const q=S.contract?'"'+(S.contract.length>110?S.contract.slice(0,107)+'…':S.contract)+'"':'Set your commitment on the Contract screen to see your words here.';
+  document.getElementById('int-quote').textContent=q;
+  const ol=document.getElementById('int-options');ol.innerHTML='';
+  const show=S.redirects.slice(0,4);
+  if(!show.length){ol.innerHTML='<p style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0">Add redirects in the Blocklist tab</p>'}
+  else show.forEach(r=>{
+    const d=document.createElement('div');d.className='int-option';
+    d.innerHTML=`<span class="int-opt-text">${r.text}</span><i class="ti ti-arrow-right" style="font-size:16px;color:var(--text3)" aria-hidden="true"></i>`;
+    d.onclick=()=>{S.redirected++;persist();updateStats()};
+    ol.appendChild(d);
+  });
+  const sb=document.getElementById('sim-buttons');sb.innerHTML='';
+  APPS.forEach(a=>{
+    const b=document.createElement('button');
+    b.className='sim-btn'+(a.id===app.id?' active':'');
+    b.textContent=a.icon+' '+a.name;
+    b.onclick=()=>{S.intercepted++;persist();updateStats();renderIntercept(a.id)};
+    sb.appendChild(b);
+  });
+  updateStats();
+}
+function logOverride(){alert('Override logged. In Phase 4 this gets harder at your danger hours — every override appears in your weekly report.')}
+function updateStats(){document.getElementById('stat-intercepted').textContent=S.intercepted;document.getElementById('stat-redirected').textContent=S.redirected}
 
-  function showUnlock() {
-    document.getElementById('unlock-zone').classList.toggle('show');
-  }
-
-  const REQUIRED = 'i am giving up because';
-  function checkUnlock() {
-    const val = document.getElementById('unlock-input').value.trim().toLowerCase();
-    const ind = document.getElementById('unlock-indicator');
-    const btn = document.getElementById('unlock-btn');
-    if (val === REQUIRED) {
-      ind.textContent = '✓ You may proceed'; ind.className = 'match-indicator ok'; btn.disabled = false;
-    } else if (REQUIRED.startsWith(val) && val.length > 0) {
-      ind.textContent = 'Keep typing...'; ind.className = 'match-indicator'; btn.disabled = true;
-    } else if (val.length > 0) {
-      ind.textContent = 'Type it exactly as shown'; ind.className = 'match-indicator'; btn.disabled = true;
-    } else {
-      ind.textContent = ''; btn.disabled = true;
-    }
-  }
-
-  function unlockContract() {
-    state.contract = ''; state.goal = ''; persist(); renderContractState();
-  }
-
-  // BLOCKLIST
-  function renderApps() {
-    const grid = document.getElementById('app-grid');
-    grid.innerHTML = '';
-    APPS.forEach(app => {
-      const blocked = state.blocked.includes(app.id);
-      const card = document.createElement('div');
-      card.className = 'app-card' + (blocked ? ' blocked' : '');
-      card.setAttribute('role', 'checkbox');
-      card.setAttribute('aria-checked', blocked);
-      card.setAttribute('tabindex', '0');
-      card.innerHTML = `
-        <div class="check-badge" aria-hidden="true"><i class="ti ti-check"></i></div>
-        <span class="app-icon">${app.icon}</span>
-        <span class="app-name">${app.name}</span>
-        <span class="app-status">${blocked ? 'intercepting' : 'not blocked'}</span>
-      `;
-      card.onclick = () => toggleApp(app.id);
-      card.onkeydown = e => { if(e.key===' '||e.key==='Enter') toggleApp(app.id); };
-      grid.appendChild(card);
-    });
-  }
-
-  function toggleApp(id) {
-    const idx = state.blocked.indexOf(id);
-    if (idx > -1) state.blocked.splice(idx, 1); else state.blocked.push(id);
-    persist(); renderApps();
-  }
-
-  function renderRedirects() {
-    const list = document.getElementById('redirect-list');
-    list.innerHTML = '';
-    state.redirects.forEach(r => {
-      const item = document.createElement('div');
-      item.className = 'redirect-item';
-      item.innerHTML = `<span class="redirect-text">${r.text}</span><button class="redirect-del" onclick="deleteRedirect('${r.id}')" aria-label="Remove"><i class="ti ti-x" aria-hidden="true"></i></button>`;
-      list.appendChild(item);
-    });
-  }
-
-  function addRedirect() {
-    const inp = document.getElementById('new-redirect');
-    const val = inp.value.trim();
-    if (!val) return;
-    state.redirects.push({ id: 'r' + Date.now(), text: val });
-    inp.value = ''; persist(); renderRedirects();
-  }
-
-  function deleteRedirect(id) {
-    state.redirects = state.redirects.filter(r => r.id !== id);
-    persist(); renderRedirects();
-  }
-
-  // INTERCEPT PREVIEW
-  let currentApp = null;
-  function renderIntercept(appId) {
-    const app = APPS.find(a => a.id === appId) || APPS.find(a => state.blocked.includes(a.id)) || APPS[0];
-    currentApp = app;
-    document.getElementById('intercept-heading').textContent = `You opened ${app.name}`;
-    const quote = state.contract
-      ? '"' + (state.contract.length > 120 ? state.contract.slice(0,117) + '…' : state.contract) + '"'
-      : 'No commitment set yet — go to the Contract tab first.';
-    document.getElementById('intercept-commitment-quote').textContent = quote;
-
-    const optList = document.getElementById('intercept-options-list');
-    optList.innerHTML = '';
-    const toShow = state.redirects.slice(0, 4);
-    if (toShow.length === 0) {
-      optList.innerHTML = '<p style="font-size:13px;color:var(--text-secondary);">No redirects yet — add some in the Blocklist tab.</p>';
-    } else {
-      toShow.forEach(r => {
-        const opt = document.createElement('div');
-        opt.className = 'intercept-option';
-        opt.setAttribute('role', 'button');
-        opt.setAttribute('tabindex', '0');
-        opt.innerHTML = `<div style="flex:1"><p class="io-title">${r.text}</p></div><i class="ti ti-arrow-right" aria-hidden="true" style="color:var(--text-tertiary);font-size:16px;"></i>`;
-        opt.onclick = () => { state.redirectedToday++; persist(); updateStats(); };
-        optList.appendChild(opt);
-      });
-    }
-
-    const simBtns = document.getElementById('sim-buttons');
-    simBtns.innerHTML = '';
-    APPS.forEach(a => {
-      const b = document.createElement('button');
-      b.style.cssText = `padding:8px 12px;font-size:13px;border-radius:8px;border:0.5px solid var(--border);background:${a.id===app.id?'var(--amber)':'var(--bg-secondary)'};color:${a.id===app.id?'#FFF8F0':'var(--text)'};cursor:pointer;font-family:var(--ff-sans);font-weight:500;`;
-      b.textContent = a.icon + ' ' + a.name;
-      b.onclick = () => { state.interceptToday++; persist(); updateStats(); renderIntercept(a.id); };
-      simBtns.appendChild(b);
-    });
-
-    updateStats();
-  }
-
-  function simulateOverride() {
-    alert('Override logged. In Phase 4, this gets harder to press at your danger hours. Every override is recorded in the weekly report.');
-  }
-
-  function updateStats() {
-    document.getElementById('stat-intercepted').textContent = state.interceptToday;
-    document.getElementById('stat-redirected').textContent = state.redirectedToday;
-  }
-
-  renderContractState();
-  renderApps();
-  renderRedirects();
-  renderIntercept();
+renderContract();renderApps();renderRedirects();renderIntercept();
 </script>
-</body>
-</html>
