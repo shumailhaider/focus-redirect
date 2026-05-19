@@ -1,439 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Focus Redirect</title>
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --pink:#FF204E;
-  --crimson:#A0153E;
-  --plum:#5D0E41;
-  --navy:#00224D;
-  --bg:#080B14;
-  --bg2:#0E1220;
-  --bg3:#141926;
-  --bg4:#1C2235;
-  --surface:#1E2436;
-  --surface2:#252D42;
-  --border:rgba(255,32,78,0.12);
-  --border2:rgba(255,32,78,0.22);
-  --text:#F0EEF8;
-  --text2:#9A98AA;
-  --text3:#5A5870;
-  --ff:'Syne',sans-serif;
-  --fm:'DM Sans',sans-serif;
-  --mono:'DM Mono',monospace;
-  --r:14px;--rl:20px;--rxl:28px
-}
-.app{background:var(--bg);color:var(--text);font-family:var(--fm);min-height:700px;max-width:390px;margin:0 auto;overflow:hidden;border-radius:32px;border:1px solid rgba(255,255,255,0.06)}
-.screen{display:none;animation:fadeUp 0.25s ease}
-.screen.active{display:flex;flex-direction:column;min-height:700px}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 
-/* STATUS BAR */
-.statusbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px 6px;font-size:12px;font-family:var(--mono);color:var(--text3)}
-.statusbar-right{display:flex;gap:6px;align-items:center}
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-/* BOTTOM NAV */
-.bottomnav{display:flex;background:var(--bg2);border-top:0.5px solid var(--border);padding:12px 0 20px;margin-top:auto}
-.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:all 0.2s}
-.bnav-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all 0.25s;color:var(--text3)}
-.bnav-label{font-size:11px;font-family:var(--mono);color:var(--text3);transition:color 0.2s;letter-spacing:0.04em}
-.bnav-item.active .bnav-icon{background:rgba(255,32,78,0.15);color:var(--pink)}
-.bnav-item.active .bnav-label{color:var(--pink)}
-.bnav-item:hover .bnav-icon{background:rgba(255,32,78,0.08);color:var(--text2)}
+  <style>
+    /* ─── RESET & ROOT ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* CONTENT AREA */
-.content{flex:1;overflow-y:auto;padding:0 0 8px;scrollbar-width:none}
-.content::-webkit-scrollbar{display:none}
+    :root {
+      --pink:    #FF204E;
+      --crimson: #A0153E;
+      --plum:    #5D0E41;
+      --navy:    #00224D;
+      --bg:      #080B14;
+      --bg2:     #0E1220;
+      --bg3:     #141926;
+      --bg4:     #1C2235;
+      --surf:    #1E2436;
+      --surf2:   #252D42;
+      --bdr:     rgba(255,32,78,0.13);
+      --bdr2:    rgba(255,32,78,0.26);
+      --text:    #F0EEF8;
+      --text2:   #9A98AA;
+      --text3:   #5A5870;
+      --ff:      'Syne', sans-serif;
+      --fm:      'DM Sans', sans-serif;
+      --mono:    'DM Mono', monospace;
+    }
 
-/* HERO CARD */
-.hero-card{margin:16px 16px 0;border-radius:var(--rxl);padding:28px 24px 24px;background:linear-gradient(135deg,var(--plum) 0%,var(--crimson) 50%,var(--navy) 100%);position:relative;overflow:hidden}
-.hero-card::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,32,78,0.15);pointer-events:none}
-.hero-card::after{content:'';position:absolute;bottom:-30px;left:-20px;width:120px;height:120px;border-radius:50%;background:rgba(0,34,77,0.3);pointer-events:none}
-.hero-eyebrow{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.55);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
-.hero-title{font-family:var(--ff);font-size:22px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:6px;position:relative;z-index:1}
-.hero-sub{font-size:13px;color:rgba(255,255,255,0.6);line-height:1.5;position:relative;z-index:1}
-.hero-stats{display:flex;gap:16px;margin-top:20px;position:relative;z-index:1}
-.hero-stat{flex:1;background:rgba(0,0,0,0.25);border-radius:var(--r);padding:12px;border:0.5px solid rgba(255,255,255,0.1)}
-.hero-stat-num{font-family:var(--ff);font-size:24px;font-weight:700;color:#fff;line-height:1}
-.hero-stat-label{font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;font-family:var(--mono)}
+    html, body {
+      min-height: 100%;
+      background: #04060D;
+    }
 
-/* SECTION */
-.section{padding:20px 16px 0}
-.section-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.section-title{font-family:var(--ff);font-size:16px;font-weight:600;color:var(--text)}
-.section-link{font-size:12px;color:var(--pink);font-family:var(--mono);cursor:pointer;letter-spacing:0.03em}
+    body {
+      font-family: var(--fm);
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px 64px;
+    }
 
-/* CARDS */
-.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:16px;margin-bottom:10px;transition:all 0.25s;cursor:pointer}
-.card:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-1px)}
+    /* ─── APP SHELL ─── */
+    .app {
+      width: 100%;
+      max-width: 420px;
+      min-height: 780px;
+      background: var(--bg);
+      border-radius: 40px;
+      border: 1px solid rgba(255,255,255,0.07);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-/* LOCKED COMMITMENT */
-.commitment-locked{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--rl);padding:20px;margin:16px 16px 0;position:relative;overflow:hidden}
-.commitment-locked::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--pink),var(--crimson))}
-.lock-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--pink);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.lock-text{font-family:var(--ff);font-size:15px;color:var(--text);line-height:1.5;font-style:italic}
+    /* ─── SCREENS ─── */
+    .screen { display: none; flex-direction: column; flex: 1; }
+    .screen.active { display: flex; animation: fadeUp .22s ease; }
 
-/* FORM ELEMENTS */
-.field{margin-bottom:16px}
-.field-label{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:block}
-textarea,input[type=text]{width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);padding:14px 16px;font-family:var(--fm);font-size:14px;color:var(--text);resize:none;line-height:1.6;transition:all 0.2s;outline:none}
-textarea::placeholder,input::placeholder{color:var(--text3)}
-textarea:focus,input[type=text]:focus{border-color:var(--pink);background:var(--bg4);box-shadow:0 0 0 3px rgba(255,32,78,0.1)}
-.char-hint{font-family:var(--mono);font-size:11px;color:var(--text3);text-align:right;margin-top:5px}
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
 
-/* BUTTONS */
-.btn-primary{width:100%;padding:16px;border:none;border-radius:var(--r);font-family:var(--ff);font-size:15px;font-weight:600;cursor:pointer;transition:all 0.25s;background:var(--pink);color:#fff;letter-spacing:0.02em}
-.btn-primary:hover{background:var(--crimson);transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,32,78,0.3)}
-.btn-primary:active{transform:scale(0.98)}
-.btn-primary:disabled{opacity:0.3;cursor:default;transform:none;box-shadow:none}
-.btn-ghost{width:100%;padding:14px;border:0.5px solid var(--border2);border-radius:var(--r);font-family:var(--fm);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s;background:transparent;color:var(--text2);margin-top:10px}
-.btn-ghost:hover{border-color:var(--pink);color:var(--pink);background:rgba(255,32,78,0.06)}
-.btn-danger{width:100%;padding:14px;border:none;border-radius:var(--r);font-family:var(--fm);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.25s;background:rgba(160,21,62,0.2);color:#FF6B8A;border:0.5px solid rgba(160,21,62,0.4);margin-top:10px}
-.btn-danger:hover{background:var(--crimson);color:#fff;border-color:var(--crimson)}
-.btn-danger:disabled{opacity:0.3;cursor:default}
+    /* ─── STATUS BAR ─── */
+    .bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text3);
+      flex-shrink: 0;
+    }
+    .bar-right { display: flex; gap: 8px; align-items: center; }
 
-/* APP GRID */
-.app-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.app-tile{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:16px 14px;cursor:pointer;transition:all 0.25s;position:relative;user-select:none}
-.app-tile:hover{border-color:var(--border2);background:var(--surface2)}
-.app-tile.blocked{background:rgba(160,21,62,0.12);border-color:rgba(255,32,78,0.35)}
-.app-tile-icon{font-size:26px;margin-bottom:10px;display:block}
-.app-tile-name{font-family:var(--ff);font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
-.app-tile-status{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.05em}
-.app-tile.blocked .app-tile-status{color:var(--pink)}
-.tile-check{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;background:var(--pink);display:none;align-items:center;justify-content:center;font-size:11px;color:#fff}
-.app-tile.blocked .tile-check{display:flex}
+    /* ─── SCROLLABLE CONTENT ─── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .content::-webkit-scrollbar { display: none; }
 
-/* REDIRECT ITEMS */
-.redirect-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;transition:all 0.2s}
-.redirect-item:hover{border-color:var(--border2)}
-.ri-text{flex:1;font-size:14px;color:var(--text2)}
-.ri-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:4px;transition:color 0.2s;display:flex;align-items:center}
-.ri-del:hover{color:var(--pink)}
-.add-row{display:flex;gap:8px}
-.add-row input{flex:1}
-.add-row .btn-add{padding:0 18px;background:var(--pink);color:#fff;border:none;border-radius:var(--r);font-family:var(--ff);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.25s;white-space:nowrap;height:48px}
-.add-row .btn-add:hover{background:var(--crimson)}
+    /* ─── BOTTOM NAV ─── */
+    .bnav {
+      display: flex;
+      background: var(--bg2);
+      border-top: 0.5px solid var(--bdr);
+      padding: 10px 0 26px;
+      flex-shrink: 0;
+    }
+    .bni {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .bni-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, color .2s;
+      color: var(--text3);
+      font-size: 22px;
+    }
+    .bni-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+      transition: color .2s;
+    }
+    .bni.active .bni-icon  { background: rgba(255,32,78,.18); color: var(--pink); }
+    .bni.active .bni-label { color: var(--pink); }
+    .bni:hover  .bni-icon  { background: rgba(255,32,78,.09); color: var(--text2); }
 
-/* INTERCEPT PREVIEW */
-.intercept-card{margin:16px;border-radius:var(--rxl);overflow:hidden;border:0.5px solid var(--border2)}
-.intercept-header{background:linear-gradient(160deg,var(--plum),var(--navy) 80%);padding:28px 20px 24px;text-align:center;position:relative;overflow:hidden}
-.intercept-header::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;background:rgba(255,32,78,0.08)}
-.int-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,32,78,0.2);border:0.5px solid rgba(255,32,78,0.4);border-radius:20px;padding:5px 12px;font-family:var(--mono);font-size:10px;color:var(--pink);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px}
-.int-heading{font-family:var(--ff);font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;position:relative;z-index:1}
-.int-quote{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5;font-style:italic;position:relative;z-index:1;max-width:260px;margin:0 auto}
-.intercept-body{background:var(--bg2);padding:16px}
-.int-section-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
-.int-option{display:flex;align-items:center;gap:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s}
-.int-option:hover{border-color:var(--pink);background:var(--surface2)}
-.int-opt-text{flex:1;font-size:13px;color:var(--text)}
-.int-override{text-align:center;padding:12px 16px 16px}
-.int-override-btn{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:var(--mono);text-decoration:underline;text-underline-offset:3px;letter-spacing:0.03em;transition:color 0.2s}
-.int-override-btn:hover{color:#FF6B8A}
+    /* ─── HERO CARD ─── */
+    .hero {
+      margin: 16px 16px 0;
+      border-radius: 26px;
+      padding: 28px 24px 26px;
+      background: linear-gradient(135deg, var(--plum) 0%, var(--crimson) 55%, var(--navy) 100%);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .hero.alt { background: linear-gradient(135deg, var(--navy) 0%, var(--plum) 100%); }
+    .hero::before {
+      content: '';
+      position: absolute; top: -50px; right: -50px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: rgba(255,32,78,.12);
+      pointer-events: none;
+    }
+    .hero-eye  { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,.45); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+    .hero-h    { font-family: var(--ff);   font-size: 22px; font-weight: 700; color: #fff; line-height: 1.25; margin-bottom: 8px; position: relative; z-index: 1; }
+    .hero-sub  { font-size: 13px; color: rgba(255,255,255,.5); line-height: 1.55; position: relative; z-index: 1; }
 
-/* UNLOCK ZONE */
-.unlock-zone{background:rgba(93,14,65,0.2);border:0.5px solid rgba(160,21,62,0.35);border-radius:var(--rl);padding:18px;margin-top:12px;display:none}
-.unlock-zone.show{display:block;animation:fadeUp 0.2s ease}
-.unlock-warn{font-size:13px;color:#FF6B8A;line-height:1.6;margin-bottom:12px}
-.unlock-prompt{font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:8px}
-.match-hint{font-family:var(--mono);font-size:11px;color:#FF6B8A;margin-top:6px;min-height:16px;transition:color 0.2s}
-.match-hint.ok{color:#5DCAA5}
+    /* ─── SECTIONS ─── */
+    .sec  { padding: 20px 16px 0; }
+    .sec-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .sec-h    { font-family: var(--ff); font-size: 16px; font-weight: 600; color: var(--text); }
 
-/* SIM BUTTONS */
-.sim-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.sim-btn{padding:8px 14px;border-radius:20px;font-family:var(--mono);font-size:11px;border:0.5px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.2s;letter-spacing:0.04em}
-.sim-btn:hover,.sim-btn.active{background:rgba(255,32,78,0.15);border-color:var(--pink);color:var(--pink)}
+    /* ─── COMMITMENT LOCKED ─── */
+    .locked {
+      margin: 16px 16px 0;
+      background: var(--surf);
+      border: 0.5px solid var(--bdr2);
+      border-radius: 18px;
+      padding: 18px 18px 18px 22px;
+      position: relative;
+      overflow: hidden;
+      display: none;
+    }
+    .locked.show { display: block; }
+    .locked::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: linear-gradient(180deg, var(--pink), var(--crimson));
+    }
+    .locked-eye  { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--pink); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .locked-text { font-family: var(--ff); font-size: 15px; color: var(--text); line-height: 1.6; font-style: italic; }
 
-/* MINI STATS */
-.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 16px 0}
-.mini-stat{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:16px;text-align:center}
-.mini-stat-num{font-family:var(--ff);font-size:30px;font-weight:700;color:var(--text);line-height:1}
-.mini-stat-label{font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
-.mini-stat-num.pink{color:var(--pink)}
+    /* ─── FORM ─── */
+    .pad   { padding: 0 16px; }
+    .field { margin-bottom: 16px; }
+    .flabel {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      background: var(--bg3);
+      border: 0.5px solid var(--bdr2);
+      border-radius: 12px;
+      padding: 13px 15px;
+      font-family: var(--fm);
+      font-size: 14px;
+      color: var(--text);
+      resize: none;
+      line-height: 1.6;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    textarea::placeholder, input::placeholder { color: var(--text3); }
+    textarea:focus, input[type="text"]:focus {
+      border-color: var(--pink);
+      background: var(--bg4);
+      box-shadow: 0 0 0 3px rgba(255,32,78,.1);
+    }
+    .chint { font-family: var(--mono); font-size: 11px; color: var(--text3); text-align: right; margin-top: 5px; }
 
-/* INFO BOX */
-.info-box{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px}
-.info-box-label{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.info-box p{font-size:12px;color:var(--text3);line-height:1.6}
+    /* ─── BUTTONS ─── */
+    .btn-p {
+      width: 100%; padding: 15px;
+      border: none; border-radius: 12px;
+      font-family: var(--ff); font-size: 15px; font-weight: 600;
+      cursor: pointer; letter-spacing: .02em;
+      background: var(--pink); color: #fff;
+      transition: background .25s, transform .15s, box-shadow .25s;
+    }
+    .btn-p:hover  { background: var(--crimson); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,32,78,.3); }
+    .btn-p:active { transform: scale(.98); box-shadow: none; }
+    .btn-p:disabled { opacity: .3; cursor: default; transform: none; box-shadow: none; }
 
-.pad{padding:0 16px}
-.gap{height:14px}
-</style>
+    .btn-g {
+      width: 100%; padding: 14px; margin-top: 10px;
+      border: 0.5px solid var(--bdr2); border-radius: 12px;
+      font-family: var(--fm); font-size: 14px; font-weight: 500;
+      cursor: pointer;
+      background: transparent; color: var(--text2);
+      transition: border-color .2s, color .2s, background .2s;
+    }
+    .btn-g:hover { border-color: var(--pink); color: var(--pink); background: rgba(255,32,78,.06); }
 
-<h2 class="sr-only">Focus Redirect app — redesigned dark UI with your colour palette</h2>
+    .btn-d {
+      width: 100%; padding: 14px; margin-top: 10px;
+      border: 0.5px solid rgba(160,21,62,.4); border-radius: 12px;
+      font-family: var(--fm); font-size: 14px; font-weight: 500;
+      cursor: pointer;
+      background: rgba(160,21,62,.2); color: #FF6B8A;
+      transition: background .25s, color .25s, border-color .25s;
+    }
+    .btn-d:hover    { background: var(--crimson); color: #fff; border-color: var(--crimson); }
+    .btn-d:disabled { opacity: .3; cursor: default; }
 
+    /* ─── UNLOCK ZONE ─── */
+    .uzone {
+      margin: 12px 16px 0;
+      background: rgba(93,14,65,.22);
+      border: 0.5px solid rgba(160,21,62,.38);
+      border-radius: 18px;
+      padding: 18px;
+      display: none;
+    }
+    .uzone.show { display: block; animation: fadeUp .2s ease; }
+    .uwarn  { font-size: 13px; color: #FF6B8A; line-height: 1.65; margin-bottom: 12px; }
+    .uprompt{ font-family: var(--mono); font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+    .uhint  { font-family: var(--mono); font-size: 11px; color: #FF6B8A; margin-top: 6px; min-height: 16px; }
+    .uhint.ok { color: #5DCAA5; }
+
+    /* ─── INFO BOX ─── */
+    .ibox {
+      background: var(--surf);
+      border: 0.5px solid var(--bdr);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .ibox-label {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--text3); margin-bottom: 6px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ibox p { font-size: 12px; color: var(--text3); line-height: 1.65; }
+
+    /* ─── APP GRID ─── */
+    .agrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .atile {
+      background: var(--surf);
+      border: 0.5px solid var(--bdr);
+      border-radius: 18px;
+      padding: 16px 14px;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+      position: relative;
+      user-select: none;
+      min-width: 0;
+    }
+    .atile:hover   { background: var(--surf2); border-color: var(--bdr2); }
+    .atile.blocked { background: rgba(160,21,62,.14); border-color: rgba(255,32,78,.38); }
+
+    .atile-icon   { font-size: 26px; margin-bottom: 10px; display: block; }
+    .atile-name   { font-family: var(--ff); font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .atile-status { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: .04em; }
+    .atile.blocked .atile-status { color: var(--pink); }
+
+    .tile-chk {
+      position: absolute; top: 12px; right: 12px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--pink);
+      display: none; align-items: center; justify-content: center;
+      font-size: 11px; color: #fff;
+    }
+    .atile.blocked .tile-chk { display: flex; }
+
+    /* ─── REDIRECT LIST ─── */
+    .ritem {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surf);
+      border: 0.5px solid var(--bdr);
+      border-radius: 12px;
+      padding: 13px 15px;
+      margin-bottom: 8px;
+      transition: border-color .2s;
+    }
+    .ritem:hover { border-color: var(--bdr2); }
+    .rtext { flex: 1; font-size: 14px; color: var(--text2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rdel  { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 17px; padding: 4px; display: flex; align-items: center; flex-shrink: 0; transition: color .2s; }
+    .rdel:hover { color: var(--pink); }
+
+    .addrow { display: flex; gap: 8px; }
+    .addrow input { flex: 1; min-width: 0; }
+    .btn-add {
+      padding: 0 18px; height: 50px;
+      background: var(--pink); color: #fff;
+      border: none; border-radius: 12px;
+      font-family: var(--ff); font-size: 14px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+      transition: background .25s, box-shadow .25s;
+    }
+    .btn-add:hover { background: var(--crimson); box-shadow: 0 4px 16px rgba(255,32,78,.28); }
+
+    /* ─── STATS ─── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 16px 16px 0;
+    }
+    .scard { background: var(--surf); border: 0.5px solid var(--bdr); border-radius: 18px; padding: 18px; text-align: center; }
+    .snum  { font-family: var(--ff); font-size: 32px; font-weight: 700; color: var(--text); line-height: 1; }
+    .snum.pink { color: var(--pink); }
+    .slabel{ font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 5px; letter-spacing: .04em; }
+
+    /* ─── SIM BUTTONS ─── */
+    .simrow { display: flex; gap: 8px; flex-wrap: wrap; }
+    .simbtn {
+      padding: 8px 14px; border-radius: 20px;
+      font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+      border: 0.5px solid var(--bdr2);
+      background: var(--surf); color: var(--text2);
+      cursor: pointer;
+      transition: background .2s, border-color .2s, color .2s;
+    }
+    .simbtn:hover, .simbtn.active { background: rgba(255,32,78,.16); border-color: var(--pink); color: var(--pink); }
+
+    /* ─── INTERCEPT CARD ─── */
+    .icard { margin: 16px; border-radius: 24px; overflow: hidden; border: 0.5px solid var(--bdr2); }
+
+    .icard-top {
+      background: linear-gradient(160deg, var(--plum), var(--navy) 85%);
+      padding: 28px 20px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .icard-top::before {
+      content: '';
+      position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+      width: 220px; height: 220px; border-radius: 50%;
+      background: rgba(255,32,78,.07);
+    }
+    .ibadge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,32,78,.2); border: 0.5px solid rgba(255,32,78,.4);
+      border-radius: 20px; padding: 5px 12px;
+      font-family: var(--mono); font-size: 10px; color: var(--pink);
+      letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px;
+    }
+    .ihead { font-family: var(--ff); font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 10px; position: relative; z-index: 1; }
+    .iquote{ font-size: 12px; color: rgba(255,255,255,.48); line-height: 1.6; font-style: italic; position: relative; z-index: 1; max-width: 280px; margin: 0 auto; }
+
+    .icard-body { background: var(--bg2); padding: 16px; }
+    .iopts-label{ font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+
+    .iopt {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--surf);
+      border: 0.5px solid var(--bdr);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .iopt:hover { border-color: var(--pink); background: var(--surf2); }
+    .iopt-text { flex: 1; font-size: 13px; color: var(--text); }
+
+    .iovr { text-align: center; padding: 10px 16px 16px; }
+    .iovr-btn {
+      font-size: 11px; color: var(--text3);
+      background: none; border: none; cursor: pointer;
+      font-family: var(--mono);
+      text-decoration: underline; text-underline-offset: 3px;
+      letter-spacing: .03em;
+      transition: color .2s;
+    }
+    .iovr-btn:hover { color: #FF6B8A; }
+
+    /* ─── SPACERS ─── */
+    .g  { height: 14px; }
+    .gl { height: 24px; }
+  </style>
+</head>
+<body>
 <div class="app">
 
-  <!-- ══ SCREEN: CONTRACT ══ -->
+  <!-- ══════════════════════════════════════
+       SCREEN 1 — CONTRACT
+  ══════════════════════════════════════ -->
   <div class="screen active" id="screen-contract">
-    <div class="statusbar"><span style="font-weight:500">9:41</span><div class="statusbar-right"><i class="ti ti-wifi" style="font-size:14px"></i><i class="ti ti-battery" style="font-size:14px"></i></div></div>
 
-    <div class="hero-card">
-      <p class="hero-eyebrow">Focus Redirect · Phase 1</p>
-      <h1 class="hero-title">What are you protecting your time for?</h1>
-      <p class="hero-sub">Write this when clear headed. Your future self reads it when the urge hits.</p>
+    <div class="bar">
+      <span style="font-weight:600">9:41</span>
+      <div class="bar-right">
+        <i class="ti ti-wifi" style="font-size:15px" aria-hidden="true"></i>
+        <i class="ti ti-battery" style="font-size:15px" aria-hidden="true"></i>
+      </div>
+    </div>
+
+    <div class="hero">
+      <p class="hero-eye">Focus Redirect · Phase 1</p>
+      <h1 class="hero-h">What are you protecting<br>your time for?</h1>
+      <p class="hero-sub">Write this when clear-headed. Your future self reads it when the urge hits.</p>
     </div>
 
     <div class="content">
-      <div class="gap"></div>
+      <div class="g"></div>
 
-      <!-- locked state -->
-      <div class="commitment-locked" id="locked-display" style="display:none">
-        <p class="lock-eyebrow"><i class="ti ti-lock" style="font-size:13px" aria-hidden="true"></i> Your commitment</p>
-        <p class="lock-text" id="locked-text-display"></p>
+      <!-- Locked commitment -->
+      <div class="locked" id="locked-display">
+        <p class="locked-eye">
+          <i class="ti ti-lock" style="font-size:13px" aria-hidden="true"></i>
+          Your commitment
+        </p>
+        <p class="locked-text" id="locked-text"></p>
       </div>
 
-      <!-- edit state -->
+      <!-- Edit zone -->
       <div id="edit-zone" class="pad">
         <div class="field">
-          <label class="field-label" for="commitment-text">In your own words</label>
-          <textarea id="commitment-text" rows="5" maxlength="500" placeholder="e.g. I'm protecting my mornings for focused work. Every hour I lose to Instagram is an hour I don't become the person I want to be."></textarea>
-          <p class="char-hint"><span id="char-count">0</span> / 500</p>
+          <label class="flabel" for="ctext">In your own words</label>
+          <textarea id="ctext" rows="5" maxlength="500"
+            placeholder="e.g. I'm protecting my mornings for snooker drills. Every hour I lose to Instagram is an hour I don't become the player I want to be."></textarea>
+          <p class="chint"><span id="ccount">0</span> / 500</p>
         </div>
         <div class="field">
-          <label class="field-label" for="commitment-goal">One specific goal</label>
-          <input type="text" id="commitment-goal" placeholder="e.g. finish one book by the end of this week" maxlength="100">
+          <label class="flabel" for="cgoal">One specific goal</label>
+          <input type="text" id="cgoal" placeholder="e.g. Nail the stun shot by end of month" maxlength="100">
         </div>
-        <button class="btn-primary" id="save-btn" onclick="saveContract()" disabled>Lock in my commitment</button>
+        <button class="btn-p" id="save-btn" onclick="saveContract()" disabled>Lock in my commitment</button>
       </div>
 
-      <!-- unlock friction -->
-      <div id="unlock-trigger-zone" style="display:none" class="pad">
-        <button class="btn-ghost" onclick="showUnlock()">I want to change my commitment</button>
-      </div>
-      <div class="unlock-zone pad" id="unlock-zone" style="margin:0 16px">
-        <p class="unlock-warn">To change your commitment you must type exactly why you're giving up. This is not a dismiss button.</p>
-        <p class="unlock-prompt">Type: "I am giving up because"</p>
-        <input type="text" id="unlock-input" placeholder="I am giving up because" oninput="checkUnlock()">
-        <p class="match-hint" id="unlock-hint"></p>
-        <button class="btn-danger" id="unlock-btn" onclick="unlockContract()" disabled>Override my commitment</button>
+      <!-- Change trigger -->
+      <div id="change-zone" style="display:none" class="pad">
+        <button class="btn-g" onclick="toggleUnlock()">I want to change my commitment</button>
       </div>
 
-      <div class="gap"></div>
+      <!-- Unlock friction -->
+      <div class="uzone" id="uzone">
+        <p class="uwarn"><strong style="color:#fff">To change your commitment</strong> you must type exactly why you're giving up. This is not a dismiss button.</p>
+        <p class="uprompt">Type exactly: "I am giving up because"</p>
+        <input type="text" id="uinput" placeholder="I am giving up because" oninput="checkUnlock()">
+        <p class="uhint" id="uhint"></p>
+        <button class="btn-d" id="ubtn" onclick="doUnlock()" disabled>Override my commitment</button>
+      </div>
+
+      <div class="g"></div>
       <div class="pad">
-        <div class="info-box">
-          <p class="info-box-label"><i class="ti ti-info-circle" style="font-size:13px" aria-hidden="true"></i> how this works</p>
-          <p>Saved locally in your browser. When a blocked app is intercepted, you'll see these words first — not a dismiss button.</p>
+        <div class="ibox">
+          <p class="ibox-label"><i class="ti ti-info-circle" style="font-size:13px" aria-hidden="true"></i> how this works</p>
+          <p>Saved locally in your browser. When a blocked app is intercepted, you'll see these words first — not a dismiss button. Disabling requires you to type out your reason.</p>
         </div>
       </div>
-      <div class="gap"></div>
+      <div class="gl"></div>
     </div>
 
-    <nav class="bottomnav">
-      <div class="bnav-item active" onclick="showScreen('contract')"><div class="bnav-icon"><i class="ti ti-file-text" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">contract</span></div>
-      <div class="bnav-item" onclick="showScreen('blocklist')"><div class="bnav-icon"><i class="ti ti-shield" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">blocklist</span></div>
-      <div class="bnav-item" onclick="showScreen('intercept')"><div class="bnav-icon"><i class="ti ti-eye" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">preview</span></div>
+    <nav class="bnav" role="tablist">
+      <div class="bni active" role="tab" onclick="go('contract')" aria-label="Contract">
+        <div class="bni-icon"><i class="ti ti-file-text" aria-hidden="true"></i></div>
+        <span class="bni-label">contract</span>
+      </div>
+      <div class="bni" role="tab" onclick="go('blocklist')" aria-label="Blocklist">
+        <div class="bni-icon"><i class="ti ti-shield" aria-hidden="true"></i></div>
+        <span class="bni-label">blocklist</span>
+      </div>
+      <div class="bni" role="tab" onclick="go('intercept')" aria-label="Preview">
+        <div class="bni-icon"><i class="ti ti-eye" aria-hidden="true"></i></div>
+        <span class="bni-label">preview</span>
+      </div>
     </nav>
   </div>
 
-  <!-- ══ SCREEN: BLOCKLIST ══ -->
+  <!-- ══════════════════════════════════════
+       SCREEN 2 — BLOCKLIST
+  ══════════════════════════════════════ -->
   <div class="screen" id="screen-blocklist">
-    <div class="statusbar"><span style="font-weight:500">9:41</span><div class="statusbar-right"><i class="ti ti-wifi" style="font-size:14px"></i><i class="ti ti-battery" style="font-size:14px"></i></div></div>
 
-    <div class="hero-card" style="background:linear-gradient(135deg,var(--navy) 0%,var(--plum) 100%)">
-      <p class="hero-eyebrow">Apps to intercept</p>
-      <h1 class="hero-title">Block the scroll,<br>keep the habit.</h1>
-      <p class="hero-sub">Caught at OS level before you ever see the feed.</p>
+    <div class="bar">
+      <span style="font-weight:600">9:41</span>
+      <div class="bar-right">
+        <i class="ti ti-wifi" style="font-size:15px" aria-hidden="true"></i>
+        <i class="ti ti-battery" style="font-size:15px" aria-hidden="true"></i>
+      </div>
+    </div>
+
+    <div class="hero alt">
+      <p class="hero-eye">Apps to intercept</p>
+      <h1 class="hero-h">Block the scroll,<br>keep the habit.</h1>
+      <p class="hero-sub">Caught at OS level before you see the feed.</p>
     </div>
 
     <div class="content">
-      <div class="section">
-        <div class="section-row"><span class="section-title">Blocked apps</span></div>
-        <div class="app-grid" id="app-grid"></div>
+      <div class="sec">
+        <div class="sec-row"><span class="sec-h">Blocked apps</span></div>
+        <div class="agrid" id="app-grid"></div>
       </div>
 
-      <div class="section">
-        <div class="section-row"><span class="section-title">Redirects</span></div>
-        <div id="redirect-list"></div>
-        <div class="add-row">
-          <input type="text" id="new-redirect" placeholder="Add something to reach for instead..." maxlength="80" onkeydown="if(event.key==='Enter')addRedirect()">
+      <div class="sec">
+        <div class="sec-row"><span class="sec-h">Redirects</span></div>
+        <div id="rlist"></div>
+        <div class="addrow">
+          <input type="text" id="newr" placeholder="Add something to reach for instead..." maxlength="80"
+                 onkeydown="if(event.key==='Enter') addRedirect()">
           <button class="btn-add" onclick="addRedirect()">Add</button>
         </div>
-        <div class="gap"></div>
-        <div class="info-box">
-          <p class="info-box-label"><i class="ti ti-device-mobile" style="font-size:13px" aria-hidden="true"></i> phase 3</p>
-          <p>Android Accessibility Service intercepts these at OS level — before a single pixel of feed loads.</p>
+        <div class="g"></div>
+        <div class="ibox">
+          <p class="ibox-label"><i class="ti ti-device-mobile" style="font-size:13px" aria-hidden="true"></i> phase 3 preview</p>
+          <p>Android Accessibility Service will intercept these apps at OS level — before a single pixel of feed loads. For now, this data saves in your browser.</p>
         </div>
       </div>
-      <div class="gap"></div>
+      <div class="gl"></div>
     </div>
 
-    <nav class="bottomnav">
-      <div class="bnav-item" onclick="showScreen('contract')"><div class="bnav-icon"><i class="ti ti-file-text" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">contract</span></div>
-      <div class="bnav-item active" onclick="showScreen('blocklist')"><div class="bnav-icon"><i class="ti ti-shield" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">blocklist</span></div>
-      <div class="bnav-item" onclick="showScreen('intercept')"><div class="bnav-icon"><i class="ti ti-eye" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">preview</span></div>
+    <nav class="bnav" role="tablist">
+      <div class="bni" role="tab" onclick="go('contract')" aria-label="Contract">
+        <div class="bni-icon"><i class="ti ti-file-text" aria-hidden="true"></i></div>
+        <span class="bni-label">contract</span>
+      </div>
+      <div class="bni active" role="tab" onclick="go('blocklist')" aria-label="Blocklist">
+        <div class="bni-icon"><i class="ti ti-shield" aria-hidden="true"></i></div>
+        <span class="bni-label">blocklist</span>
+      </div>
+      <div class="bni" role="tab" onclick="go('intercept')" aria-label="Preview">
+        <div class="bni-icon"><i class="ti ti-eye" aria-hidden="true"></i></div>
+        <span class="bni-label">preview</span>
+      </div>
     </nav>
   </div>
 
-  <!-- ══ SCREEN: INTERCEPT PREVIEW ══ -->
+  <!-- ══════════════════════════════════════
+       SCREEN 3 — INTERCEPT PREVIEW
+  ══════════════════════════════════════ -->
   <div class="screen" id="screen-intercept">
-    <div class="statusbar"><span style="font-weight:500">9:41</span><div class="statusbar-right"><i class="ti ti-wifi" style="font-size:14px"></i><i class="ti ti-battery" style="font-size:14px"></i></div></div>
+
+    <div class="bar">
+      <span style="font-weight:600">9:41</span>
+      <div class="bar-right">
+        <i class="ti ti-wifi" style="font-size:15px" aria-hidden="true"></i>
+        <i class="ti ti-battery" style="font-size:15px" aria-hidden="true"></i>
+      </div>
+    </div>
 
     <div class="content">
-      <div class="mini-stats">
-        <div class="mini-stat"><p class="mini-stat-num pink" id="stat-intercepted">0</p><p class="mini-stat-label">intercepted</p></div>
-        <div class="mini-stat"><p class="mini-stat-num" id="stat-redirected">0</p><p class="mini-stat-label">redirected</p></div>
-      </div>
-
-      <div class="section">
-        <div class="section-row"><span class="section-title">Simulate</span></div>
-        <div class="sim-row" id="sim-buttons"></div>
-      </div>
-
-      <div class="intercept-card" id="intercept-mockup">
-        <div class="intercept-header">
-          <div class="int-badge"><i class="ti ti-shield-check" style="font-size:12px" aria-hidden="true"></i> intercepted</div>
-          <h3 class="int-heading" id="int-heading">You opened Instagram</h3>
-          <p class="int-quote" id="int-quote">Set your commitment on the Contract screen to see your words here.</p>
+      <div class="stats">
+        <div class="scard">
+          <p class="snum pink" id="s-int">0</p>
+          <p class="slabel">intercepted</p>
         </div>
-        <div class="intercept-body">
-          <p class="int-section-label">your sober self left these for you</p>
-          <div id="int-options"></div>
-          <div class="int-override">
-            <button class="int-override-btn" onclick="logOverride()">let me in anyway — I've decided this</button>
+        <div class="scard">
+          <p class="snum" id="s-red">0</p>
+          <p class="slabel">redirected</p>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-row"><span class="sec-h">Simulate intercept</span></div>
+        <div class="simrow" id="sim-btns"></div>
+      </div>
+
+      <div class="icard">
+        <div class="icard-top">
+          <div class="ibadge">
+            <i class="ti ti-shield-check" style="font-size:12px" aria-hidden="true"></i>
+            intercepted
+          </div>
+          <h3 class="ihead" id="i-heading">You opened Instagram</h3>
+          <p class="iquote" id="i-quote">Set your commitment on the Contract screen to see your own words here.</p>
+        </div>
+        <div class="icard-body">
+          <p class="iopts-label">your sober self left these for you</p>
+          <div id="i-opts"></div>
+          <div class="iovr">
+            <button class="iovr-btn" onclick="logOverride()">let me in anyway — I've decided this</button>
           </div>
         </div>
       </div>
 
-      <div class="section">
-        <div class="info-box">
-          <p class="info-box-label"><i class="ti ti-clock" style="font-size:13px" aria-hidden="true"></i> phase 4 · time-aware blocking</p>
-          <p>The override button gets harder to press at your danger windows. The app learns when you're weakest and gets stricter exactly then.</p>
+      <div class="sec">
+        <div class="ibox">
+          <p class="ibox-label"><i class="ti ti-clock" style="font-size:13px" aria-hidden="true"></i> phase 4 · time-aware blocking</p>
+          <p>The override button gets harder to press at your danger windows (e.g. 11pm). The app learns when you're weakest and gets stricter exactly then.</p>
         </div>
       </div>
-      <div class="gap"></div>
+      <div class="gl"></div>
     </div>
 
-    <nav class="bottomnav">
-      <div class="bnav-item" onclick="showScreen('contract')"><div class="bnav-icon"><i class="ti ti-file-text" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">contract</span></div>
-      <div class="bnav-item" onclick="showScreen('blocklist')"><div class="bnav-icon"><i class="ti ti-shield" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">blocklist</span></div>
-      <div class="bnav-item active" onclick="showScreen('intercept')"><div class="bnav-icon"><i class="ti ti-eye" style="font-size:20px" aria-hidden="true"></i></div><span class="bnav-label">preview</span></div>
+    <nav class="bnav" role="tablist">
+      <div class="bni" role="tab" onclick="go('contract')" aria-label="Contract">
+        <div class="bni-icon"><i class="ti ti-file-text" aria-hidden="true"></i></div>
+        <span class="bni-label">contract</span>
+      </div>
+      <div class="bni" role="tab" onclick="go('blocklist')" aria-label="Blocklist">
+        <div class="bni-icon"><i class="ti ti-shield" aria-hidden="true"></i></div>
+        <span class="bni-label">blocklist</span>
+      </div>
+      <div class="bni active" role="tab" onclick="go('intercept')" aria-label="Preview">
+        <div class="bni-icon"><i class="ti ti-eye" aria-hidden="true"></i></div>
+        <span class="bni-label">preview</span>
+      </div>
     </nav>
   </div>
 
-</div>
+</div><!-- /.app -->
 
 <script>
-const APPS=[
-  {id:'instagram',name:'Instagram',icon:'📸'},
-  {id:'tiktok',name:'TikTok',icon:'🎵'},
-  {id:'snapchat',name:'Snapchat',icon:'👻'},
-  {id:'facebook',name:'Facebook',icon:'👤'},
+/* ── DATA ── */
+const APPS = [
+  { id:'instagram', name:'Instagram', icon:'📸' },
+  { id:'tiktok',   name:'TikTok',   icon:'🎵' },
+  { id:'snapchat', name:'Snapchat', icon:'👻' },
+  { id:'facebook', name:'Facebook', icon:'👤' },
 ];
-const DEF_REDIRECTS=[
-  {id:'r1',text:'🎱  Snooker drill #4 — stun shot practice'},
-  {id:'r2',text:'🃏  Cardistry: revolution cut, 10 slow reps'},
-  {id:'r3',text:'🎧  Deep work block — 30 min, no phone'},
+const DEF_REDIRECTS = [
+  { id:'r1', text:'🎱  Snooker drill #4 — stun shot practice' },
+  { id:'r2', text:'🃏  Cardistry: revolution cut, 10 slow reps' },
+  { id:'r3', text:'🎧  Deep house session — 30 min, no phone' },
 ];
 
-function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}}
-function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+function ld(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch{ return d; } }
+function sv(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} }
 
-let S={
-  contract:load('frc_contract',''),
-  goal:load('frc_goal',''),
-  blocked:load('frc_blocked',['instagram','tiktok','snapchat','facebook']),
-  redirects:load('frc_redirects',DEF_REDIRECTS),
-  intercepted:load('frc_int',0),
-  redirected:load('frc_red',0),
+let S = {
+  contract:  ld('frc_c',''),
+  goal:      ld('frc_g',''),
+  blocked:   ld('frc_b',['instagram','tiktok','snapchat','facebook']),
+  redirects: ld('frc_r', DEF_REDIRECTS),
+  ints:      ld('frc_i',0),
+  reds:      ld('frc_d',0),
 };
-function persist(){save('frc_contract',S.contract);save('frc_goal',S.goal);save('frc_blocked',S.blocked);save('frc_redirects',S.redirects);save('frc_int',S.intercepted);save('frc_red',S.redirected)}
+function persist(){
+  sv('frc_c',S.contract); sv('frc_g',S.goal);
+  sv('frc_b',S.blocked);  sv('frc_r',S.redirects);
+  sv('frc_i',S.ints);     sv('frc_d',S.reds);
+}
 
-function showScreen(name){
+/* ── NAVIGATION ── */
+function go(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.bni').forEach(b=>b.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
-  if(name==='intercept')renderIntercept();
+  const idx = {contract:0, blocklist:1, intercept:2}[name];
+  document.querySelectorAll('.bni')[idx].classList.add('active');
+  if(name==='intercept') renderIntercept();
 }
 
-// CONTRACT
-const ta=document.getElementById('commitment-text');
-const cc=document.getElementById('char-count');
-const sb=document.getElementById('save-btn');
-ta.addEventListener('input',()=>{cc.textContent=ta.value.length;sb.disabled=ta.value.trim().length<30});
+/* ── CONTRACT ── */
+const ta   = document.getElementById('ctext');
+const cc   = document.getElementById('ccount');
+const sBtn = document.getElementById('save-btn');
 
-function saveContract(){S.contract=ta.value.trim();S.goal=document.getElementById('commitment-goal').value.trim();persist();renderContract()}
+ta.addEventListener('input', ()=>{
+  cc.textContent = ta.value.length;
+  sBtn.disabled  = ta.value.trim().length < 30;
+});
+
+function saveContract(){
+  S.contract = ta.value.trim();
+  S.goal     = document.getElementById('cgoal').value.trim();
+  persist();
+  renderContract();
+}
+
 function renderContract(){
-  const has=S.contract.length>0;
-  document.getElementById('edit-zone').style.display=has?'none':'block';
-  const ld=document.getElementById('locked-display');
-  ld.style.display=has?'block':'none';
-  document.getElementById('locked-text-display').textContent=S.contract;
-  document.getElementById('unlock-trigger-zone').style.display=has?'block':'none';
-  document.getElementById('unlock-zone').classList.remove('show');
-  document.getElementById('unlock-input').value='';
-  document.getElementById('unlock-hint').textContent='';
-  document.getElementById('unlock-btn').disabled=true;
-  if(!has){ta.value='';document.getElementById('commitment-goal').value='';cc.textContent='0';sb.disabled=true}
+  const has = S.contract.length > 0;
+  document.getElementById('edit-zone').style.display   = has ? 'none'  : 'block';
+  document.getElementById('change-zone').style.display = has ? 'block' : 'none';
+  const ld = document.getElementById('locked-display');
+  has ? ld.classList.add('show') : ld.classList.remove('show');
+  document.getElementById('locked-text').textContent   = S.contract;
+  document.getElementById('uzone').classList.remove('show');
+  document.getElementById('uinput').value  = '';
+  document.getElementById('uhint').textContent = '';
+  document.getElementById('ubtn').disabled = true;
+  if(!has){
+    ta.value=''; document.getElementById('cgoal').value='';
+    cc.textContent='0'; sBtn.disabled=true;
+  }
 }
-function showUnlock(){document.getElementById('unlock-zone').classList.toggle('show')}
-const REQ='i am giving up because';
-function checkUnlock(){
-  const v=document.getElementById('unlock-input').value.trim().toLowerCase();
-  const h=document.getElementById('unlock-hint');
-  const b=document.getElementById('unlock-btn');
-  if(v===REQ){h.textContent='✓ you may proceed';h.className='match-hint ok';b.disabled=false}
-  else if(REQ.startsWith(v)&&v.length>0){h.textContent='keep typing...';h.className='match-hint';b.disabled=true}
-  else if(v.length>0){h.textContent='type it exactly as shown';h.className='match-hint';b.disabled=true}
-  else{h.textContent='';b.disabled=true}
-}
-function unlockContract(){S.contract='';S.goal='';persist();renderContract()}
 
-// BLOCKLIST
+function toggleUnlock(){
+  document.getElementById('uzone').classList.toggle('show');
+}
+
+const REQ = 'i am giving up because';
+function checkUnlock(){
+  const v = document.getElementById('uinput').value.trim().toLowerCase();
+  const h = document.getElementById('uhint');
+  const b = document.getElementById('ubtn');
+  if(v === REQ){
+    h.textContent='✓ you may proceed'; h.className='uhint ok'; b.disabled=false;
+  } else if(REQ.startsWith(v) && v.length>0){
+    h.textContent='keep typing...'; h.className='uhint'; b.disabled=true;
+  } else if(v.length>0){
+    h.textContent='type it exactly as shown'; h.className='uhint'; b.disabled=true;
+  } else {
+    h.textContent=''; b.disabled=true;
+  }
+}
+
+function doUnlock(){
+  S.contract=''; S.goal=''; persist(); renderContract();
+}
+
+/* ── BLOCKLIST ── */
 function renderApps(){
-  const g=document.getElementById('app-grid');g.innerHTML='';
+  const g = document.getElementById('app-grid');
+  g.innerHTML = '';
   APPS.forEach(app=>{
-    const bl=S.blocked.includes(app.id);
-    const d=document.createElement('div');
-    d.className='app-tile'+(bl?' blocked':'');
-    d.setAttribute('role','checkbox');d.setAttribute('aria-checked',bl);d.setAttribute('tabindex','0');
-    d.innerHTML=`<div class="tile-check" aria-hidden="true"><i class="ti ti-check"></i></div><span class="app-tile-icon">${app.icon}</span><span class="app-tile-name">${app.name}</span><span class="app-tile-status">${bl?'intercepting':'not blocked'}</span>`;
-    d.onclick=()=>toggleApp(app.id);
-    d.onkeydown=e=>{if(e.key===' '||e.key==='Enter')toggleApp(app.id)};
-    g.appendChild(d);
+    const bl  = S.blocked.includes(app.id);
+    const div = document.createElement('div');
+    div.className = 'atile' + (bl?' blocked':'');
+    div.setAttribute('role','checkbox');
+    div.setAttribute('aria-checked', String(bl));
+    div.setAttribute('tabindex','0');
+    div.innerHTML = `
+      <div class="tile-chk" aria-hidden="true"><i class="ti ti-check"></i></div>
+      <span class="atile-icon">${app.icon}</span>
+      <span class="atile-name">${app.name}</span>
+      <span class="atile-status">${bl?'intercepting':'not blocked'}</span>
+    `;
+    div.onclick   = ()=>toggleApp(app.id);
+    div.onkeydown = e=>{ if(e.key===' '||e.key==='Enter') toggleApp(app.id); };
+    g.appendChild(div);
   });
 }
-function toggleApp(id){const i=S.blocked.indexOf(id);if(i>-1)S.blocked.splice(i,1);else S.blocked.push(id);persist();renderApps()}
+
+function toggleApp(id){
+  const i = S.blocked.indexOf(id);
+  if(i>-1) S.blocked.splice(i,1); else S.blocked.push(id);
+  persist(); renderApps();
+}
 
 function renderRedirects(){
-  const l=document.getElementById('redirect-list');l.innerHTML='';
+  const l = document.getElementById('rlist');
+  l.innerHTML = '';
   S.redirects.forEach(r=>{
-    const d=document.createElement('div');d.className='redirect-item';
-    d.innerHTML=`<span class="ri-text">${r.text}</span><button class="ri-del" onclick="delRedirect('${r.id}')" aria-label="Remove"><i class="ti ti-x" aria-hidden="true"></i></button>`;
+    const d = document.createElement('div');
+    d.className = 'ritem';
+    d.innerHTML = `
+      <span class="rtext">${r.text}</span>
+      <button class="rdel" onclick="delRedirect('${r.id}')" aria-label="Remove">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+    `;
     l.appendChild(d);
   });
 }
-function addRedirect(){const i=document.getElementById('new-redirect');const v=i.value.trim();if(!v)return;S.redirects.push({id:'r'+Date.now(),text:v});i.value='';persist();renderRedirects()}
-function delRedirect(id){S.redirects=S.redirects.filter(r=>r.id!==id);persist();renderRedirects()}
 
-// INTERCEPT
-let curApp=null;
+function addRedirect(){
+  const inp = document.getElementById('newr');
+  const val = inp.value.trim();
+  if(!val) return;
+  S.redirects.push({ id:'r'+Date.now(), text:val });
+  inp.value=''; persist(); renderRedirects();
+}
+
+function delRedirect(id){
+  S.redirects = S.redirects.filter(r=>r.id!==id);
+  persist(); renderRedirects();
+}
+
+/* ── INTERCEPT PREVIEW ── */
 function renderIntercept(appId){
-  const app=APPS.find(a=>a.id===appId)||APPS.find(a=>S.blocked.includes(a.id))||APPS[0];
-  curApp=app;
-  document.getElementById('int-heading').textContent=`You opened ${app.name}`;
-  const q=S.contract?'"'+(S.contract.length>110?S.contract.slice(0,107)+'…':S.contract)+'"':'Set your commitment on the Contract screen to see your words here.';
-  document.getElementById('int-quote').textContent=q;
-  const ol=document.getElementById('int-options');ol.innerHTML='';
-  const show=S.redirects.slice(0,4);
-  if(!show.length){ol.innerHTML='<p style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0">Add redirects in the Blocklist tab</p>'}
-  else show.forEach(r=>{
-    const d=document.createElement('div');d.className='int-option';
-    d.innerHTML=`<span class="int-opt-text">${r.text}</span><i class="ti ti-arrow-right" style="font-size:16px;color:var(--text3)" aria-hidden="true"></i>`;
-    d.onclick=()=>{S.redirected++;persist();updateStats()};
-    ol.appendChild(d);
-  });
-  const sb=document.getElementById('sim-buttons');sb.innerHTML='';
+  const app = APPS.find(a=>a.id===appId)
+            || APPS.find(a=>S.blocked.includes(a.id))
+            || APPS[0];
+
+  document.getElementById('i-heading').textContent = `You opened ${app.name}`;
+
+  const raw = S.contract;
+  document.getElementById('i-quote').textContent = raw
+    ? '"' + (raw.length>120 ? raw.slice(0,117)+'…' : raw) + '"'
+    : 'Set your commitment on the Contract screen to see your own words here.';
+
+  const ol = document.getElementById('i-opts');
+  ol.innerHTML='';
+  const show = S.redirects.slice(0,4);
+  if(!show.length){
+    ol.innerHTML='<p style="font-size:12px;color:var(--text3);text-align:center;padding:14px 0">Add redirects in the Blocklist tab</p>';
+  } else {
+    show.forEach(r=>{
+      const d=document.createElement('div');
+      d.className='iopt';
+      d.setAttribute('role','button'); d.setAttribute('tabindex','0');
+      d.innerHTML=`<span class="iopt-text">${r.text}</span><i class="ti ti-arrow-right" style="font-size:16px;color:var(--text3);flex-shrink:0" aria-hidden="true"></i>`;
+      d.onclick  = ()=>{ S.reds++; persist(); updateStats(); };
+      d.onkeydown= e=>{ if(e.key==='Enter'||e.key===' ') d.click(); };
+      ol.appendChild(d);
+    });
+  }
+
+  const sb = document.getElementById('sim-btns');
+  sb.innerHTML='';
   APPS.forEach(a=>{
     const b=document.createElement('button');
-    b.className='sim-btn'+(a.id===app.id?' active':'');
+    b.className='simbtn'+(a.id===app.id?' active':'');
     b.textContent=a.icon+' '+a.name;
-    b.onclick=()=>{S.intercepted++;persist();updateStats();renderIntercept(a.id)};
+    b.onclick=()=>{ S.ints++; persist(); updateStats(); renderIntercept(a.id); };
     sb.appendChild(b);
   });
+
   updateStats();
 }
-function logOverride(){alert('Override logged. In Phase 4 this gets harder at your danger hours — every override appears in your weekly report.')}
-function updateStats(){document.getElementById('stat-intercepted').textContent=S.intercepted;document.getElementById('stat-redirected').textContent=S.redirected}
 
-renderContract();renderApps();renderRedirects();renderIntercept();
+function logOverride(){
+  alert('Override logged. In Phase 4 this gets harder at your danger hours — every override appears in your weekly report.');
+}
+
+function updateStats(){
+  document.getElementById('s-int').textContent = S.ints;
+  document.getElementById('s-red').textContent = S.reds;
+}
+
+/* ── INIT ── */
+renderContract();
+renderApps();
+renderRedirects();
+renderIntercept();
 </script>
+</body>
+</html>
